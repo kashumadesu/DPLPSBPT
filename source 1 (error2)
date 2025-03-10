@@ -309,7 +309,8 @@ public class PersonalityQuizApp1 {
     }
     
     private void updateQuizPanel() {
-        JPanel quizPanel = (JPanel) ((CardLayout) mainPanel.getLayout()).findComponentById(mainPanel, "quiz");
+        // Get the quiz panel directly from the mainPanel
+        JPanel quizPanel = (JPanel) mainPanel.getComponent(mainPanel.getComponentCount() - 2); // Quiz panel is the second-to-last component
         quizPanel.removeAll();
         
         Question currentQuestion = questions.get(currentQuestionIndex);
@@ -402,7 +403,8 @@ public class PersonalityQuizApp1 {
     }
     
     private void displayResults(PersonalityProfile profile) {
-        JPanel resultsPanel = (JPanel) ((Object) mainPanel.getLayout()).findComponentById(mainPanel, "results");
+        // Get the results panel directly from the mainPanel
+        JPanel resultsPanel = (JPanel) mainPanel.getComponent(mainPanel.getComponentCount() - 1); // Results panel is the last component
         resultsPanel.removeAll();
         
         JLabel titleLabel = new JLabel("Your Personality Profile");
