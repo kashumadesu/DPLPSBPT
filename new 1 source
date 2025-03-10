@@ -1,0 +1,1956 @@
+import javax.swing.*;
+import javax.swing.border.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.List;
+
+public class PersonalityQuizApp1 {
+    // Main application frame
+    private JFrame frame;
+    
+    // Card layout for switching between screens
+    private CardLayout cardLayout;
+    private JPanel mainPanel;
+    
+    // User data storage
+    private Map<String, UserData> userData = new HashMap<>();
+    private Map<String, List<PersonalityProfile>> userProfiles = new HashMap<>();
+    
+    // Current user
+    private String currentUser = null;
+    
+    // Quiz data
+    private List<Question> questions;
+    private int currentQuestionIndex = 0;
+    private int[] answers;
+    
+    // Date formatter
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+    
+    // Update the color scheme to use lavender as the primary color
+    private Color primaryColor = new Color(142, 124, 195); // Lavender
+    private Color accentColor = new Color(106, 90, 205);   // Slate blue
+    private Color lightBgColor = new Color(245, 240, 255); // Very light lavender
+    private Color darkTextColor = new Color(75, 61, 128);  // Dark purple
+    
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            new PersonalityQuizApp1().initialize();
+        });
+    }
+    
+    public void initialize() {
+        // Load user data
+        loadUserData();
+        
+        // Initialize quiz questions
+        initializeQuestions();
+        
+        // Create main frame
+        frame = new JFrame("Personality-Based Learning Path System");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(1000, 700);
+        frame.setLocationRelativeTo(null);
+        
+        // Create card layout and main panel
+        cardLayout = new CardLayout();
+        mainPanel = new JPanel(cardLayout);
+        
+        // Create different screens
+        createLoginPanel();
+        createSignupPanel();
+        createHomePanel();
+        createProfilePanel();
+        createChangePasswordPanel();
+        createQuizIntroPanel();
+        createQuizPanel();
+        createResultsPanel();
+        
+        // Add main panel to frame
+        frame.add(mainPanel);
+        
+        // Show the frame
+        frame.setVisible(true);
+    }
+    
+    // Update the createLoginPanel method with a modern lavender design
+    private void createLoginPanel() {
+        JPanel loginPanel = new JPanel(new BorderLayout());
+        loginPanel.setBackground(lightBgColor);
+        
+        // Create a left panel for illustration/branding
+        JPanel leftPanel = new JPanel(new BorderLayout());
+        leftPanel.setBackground(primaryColor);
+        leftPanel.setPreferredSize(new Dimension(400, 0));
+        leftPanel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
+        
+        JLabel appNameLabel = new JLabel("Learning Path System");
+        appNameLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        appNameLabel.setForeground(Color.WHITE);
+        leftPanel.add(appNameLabel, BorderLayout.NORTH);
+        
+        JLabel taglineLabel = new JLabel("<html><div style='text-align: left;'>Discover your personalized learning path based on your unique personality traits</div></html>");
+        taglineLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        taglineLabel.setForeground(new Color(230, 230, 250));
+        taglineLabel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
+        leftPanel.add(taglineLabel, BorderLayout.CENTER);
+        
+        // Create a right panel for login form
+        JPanel rightPanel = new JPanel(new GridBagLayout());
+        rightPanel.setBackground(lightBgColor);
+        rightPanel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        
+        JLabel welcomeLabel = new JLabel("Welcome Back!");
+        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        welcomeLabel.setForeground(darkTextColor);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(0, 0, 20, 0);
+        rightPanel.add(welcomeLabel, gbc);
+        
+        JLabel subtitleLabel = new JLabel("Please sign in to continue");
+        subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        subtitleLabel.setForeground(new Color(120, 120, 150));
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(0, 0, 30, 0);
+        rightPanel.add(subtitleLabel, gbc);
+        
+        // Username field
+        JLabel usernameLabel = new JLabel("Username");
+        usernameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        usernameLabel.setForeground(darkTextColor);
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(0, 0, 5, 0);
+        rightPanel.add(usernameLabel, gbc);
+        
+        JTextField usernameField = new JTextField(20);
+        usernameField.setFont(new Font("Arial", Font.PLAIN, 14));
+        usernameField.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(200, 200, 220), 1, true),
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(0, 0, 15, 0);
+        rightPanel.add(usernameField, gbc);
+        
+        // Password field
+        JLabel passwordLabel = new JLabel("Password");
+        passwordLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        passwordLabel.setForeground(darkTextColor);
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(0, 0, 5, 0);
+        rightPanel.add(passwordLabel, gbc);
+        
+        JPasswordField passwordField = new JPasswordField(20);
+        passwordField.setFont(new Font("Arial", Font.PLAIN, 14));
+        passwordField.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(200, 200, 220), 1, true),
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(0, 0, 25, 0);
+        rightPanel.add(passwordField, gbc);
+        
+        // Login button
+        JButton loginButton = new JButton("Sign In");
+        loginButton.setFont(new Font("Arial", Font.BOLD, 14));
+        loginButton.setBackground(primaryColor);
+        loginButton.setForeground(Color.WHITE);
+        loginButton.setFocusPainted(false);
+        loginButton.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+        loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(0, 0, 15, 0);
+        rightPanel.add(loginButton, gbc);
+        
+        // Sign up link
+        JPanel signupPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        signupPanel.setOpaque(false);
+        JLabel noAccountLabel = new JLabel("Don't have an account?");
+        noAccountLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        noAccountLabel.setForeground(new Color(120, 120, 150));
+        signupPanel.add(noAccountLabel);
+        
+        JButton signupButton = new JButton("Sign Up");
+        signupButton.setFont(new Font("Arial", Font.BOLD, 14));
+        signupButton.setForeground(accentColor);
+        signupButton.setBorderPainted(false);
+        signupButton.setContentAreaFilled(false);
+        signupButton.setFocusPainted(false);
+        signupButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        signupPanel.add(signupButton);
+        
+        gbc.gridx = 0;
+        gbc.gridy = 7;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(10, 0, 0, 0);
+        rightPanel.add(signupPanel, gbc);
+        
+        // Add panels to main login panel
+        loginPanel.add(leftPanel, BorderLayout.WEST);
+        loginPanel.add(rightPanel, BorderLayout.CENTER);
+        
+        // Add action listeners
+        loginButton.addActionListener(e -> {
+            String username = usernameField.getText();
+            String password = new String(passwordField.getPassword());
+            
+            if (authenticateUser(username, password)) {
+                currentUser = username;
+                updateHomePanel();
+                cardLayout.show(mainPanel, "home");
+            } else {
+                JOptionPane.showMessageDialog(frame, "Invalid username or password", "Login Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        
+        signupButton.addActionListener(e -> {
+            cardLayout.show(mainPanel, "signup");
+        });
+        
+        mainPanel.add(loginPanel, "login");
+    }
+    
+    // Update the createSignupPanel method with a modern lavender design
+    private void createSignupPanel() {
+        JPanel signupPanel = new JPanel(new BorderLayout());
+        signupPanel.setBackground(lightBgColor);
+        
+        // Create header panel
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(primaryColor);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        
+        JLabel titleLabel = new JLabel("Create Your Account");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(Color.WHITE);
+        headerPanel.add(titleLabel, BorderLayout.WEST);
+        
+        JButton backButton = new JButton("Back to Login");
+        backButton.setFont(new Font("Arial", Font.BOLD, 14));
+        backButton.setForeground(Color.WHITE);
+        backButton.setBorderPainted(false);
+        backButton.setContentAreaFilled(false);
+        backButton.setFocusPainted(false);
+        backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        headerPanel.add(backButton, BorderLayout.EAST);
+        
+        // Create form panel
+        JPanel formPanel = new JPanel();
+        formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
+        formPanel.setBackground(Color.WHITE);
+        formPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        
+        // Personal Information Section
+        JLabel personalInfoLabel = new JLabel("Personal Information");
+        personalInfoLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        personalInfoLabel.setForeground(darkTextColor);
+        personalInfoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        formPanel.add(personalInfoLabel);
+        formPanel.add(Box.createVerticalStrut(15));
+        
+        // Name fields in a row
+        JPanel namePanel = new JPanel(new GridLayout(1, 3, 10, 0));
+        namePanel.setOpaque(false);
+        namePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 75));
+        namePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        // First Name
+        JPanel firstNamePanel = new JPanel(new BorderLayout(0, 5));
+        firstNamePanel.setOpaque(false);
+        JLabel firstNameLabel = new JLabel("First Name*");
+        firstNameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        firstNameLabel.setForeground(darkTextColor);
+        firstNamePanel.add(firstNameLabel, BorderLayout.NORTH);
+        
+        JTextField firstNameField = new JTextField();
+        firstNameField.setFont(new Font("Arial", Font.PLAIN, 14));
+        firstNameField.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(200, 200, 220), 1, true),
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+        firstNamePanel.add(firstNameField, BorderLayout.CENTER);
+        namePanel.add(firstNamePanel);
+        
+        // Last Name
+        JPanel lastNamePanel = new JPanel(new BorderLayout(0, 5));
+        lastNamePanel.setOpaque(false);
+        JLabel lastNameLabel = new JLabel("Last Name*");
+        lastNameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        lastNameLabel.setForeground(darkTextColor);
+        lastNamePanel.add(lastNameLabel, BorderLayout.NORTH);
+        
+        JTextField lastNameField = new JTextField();
+        lastNameField.setFont(new Font("Arial", Font.PLAIN, 14));
+        lastNameField.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(200, 200, 220), 1, true),
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+        lastNamePanel.add(lastNameField, BorderLayout.CENTER);
+        namePanel.add(lastNamePanel);
+        
+        // Middle Name
+        JPanel middleNamePanel = new JPanel(new BorderLayout(0, 5));
+        middleNamePanel.setOpaque(false);
+        JLabel middleNameLabel = new JLabel("Middle Name");
+        middleNameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        middleNameLabel.setForeground(darkTextColor);
+        middleNamePanel.add(middleNameLabel, BorderLayout.NORTH);
+        
+        JTextField middleNameField = new JTextField();
+        middleNameField.setFont(new Font("Arial", Font.PLAIN, 14));
+        middleNameField.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(200, 200, 220), 1, true),
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+        middleNamePanel.add(middleNameField, BorderLayout.CENTER);
+        namePanel.add(middleNamePanel);
+        
+        formPanel.add(namePanel);
+        formPanel.add(Box.createVerticalStrut(15));
+        
+        // Age and Birthday in a row
+        JPanel agePanel = new JPanel(new GridLayout(1, 2, 10, 0));
+        agePanel.setOpaque(false);
+        agePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 75));
+        agePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        // Age
+        JPanel ageFieldPanel = new JPanel(new BorderLayout(0, 5));
+        ageFieldPanel.setOpaque(false);
+        JLabel ageLabel = new JLabel("Age*");
+        ageLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        ageLabel.setForeground(darkTextColor);
+        ageFieldPanel.add(ageLabel, BorderLayout.NORTH);
+        
+        JTextField ageField = new JTextField();
+        ageField.setFont(new Font("Arial", Font.PLAIN, 14));
+        ageField.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(200, 200, 220), 1, true),
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+        ageFieldPanel.add(ageField, BorderLayout.CENTER);
+        agePanel.add(ageFieldPanel);
+        
+        // Birthday
+        JPanel birthdayPanel = new JPanel(new BorderLayout(0, 5));
+        birthdayPanel.setOpaque(false);
+        JLabel birthdayLabel = new JLabel("Birthday (MM/DD/YYYY)*");
+        birthdayLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        birthdayLabel.setForeground(darkTextColor);
+        birthdayPanel.add(birthdayLabel, BorderLayout.NORTH);
+        
+        JTextField birthdayField = new JTextField();
+        birthdayField.setFont(new Font("Arial", Font.PLAIN, 14));
+        birthdayField.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(200, 200, 220), 1, true),
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+        birthdayPanel.add(birthdayField, BorderLayout.CENTER);
+        agePanel.add(birthdayPanel);
+        
+        formPanel.add(agePanel);
+        formPanel.add(Box.createVerticalStrut(25));
+        
+        // Account Information Section
+        JLabel accountInfoLabel = new JLabel("Account Information");
+        accountInfoLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        accountInfoLabel.setForeground(darkTextColor);
+        accountInfoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        formPanel.add(accountInfoLabel);
+        formPanel.add(Box.createVerticalStrut(15));
+        
+        // Username
+        JPanel usernamePanel = new JPanel(new BorderLayout(0, 5));
+        usernamePanel.setOpaque(false);
+        usernamePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 75));
+        usernamePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel usernameLabel = new JLabel("Username*");
+        usernameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        usernameLabel.setForeground(darkTextColor);
+        usernamePanel.add(usernameLabel, BorderLayout.NORTH);
+        
+        JTextField usernameField = new JTextField();
+        usernameField.setFont(new Font("Arial", Font.PLAIN, 14));
+        usernameField.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(200, 200, 220), 1, true),
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+        usernamePanel.add(usernameField, BorderLayout.CENTER);
+        
+        formPanel.add(usernamePanel);
+        formPanel.add(Box.createVerticalStrut(15));
+        
+        // Password fields in a row
+        JPanel passwordPanel = new JPanel(new GridLayout(1, 2, 10, 0));
+        passwordPanel.setOpaque(false);
+        passwordPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 75));
+        passwordPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        // Password
+        JPanel passwordFieldPanel = new JPanel(new BorderLayout(0, 5));
+        passwordFieldPanel.setOpaque(false);
+        JLabel passwordLabel = new JLabel("Password*");
+        passwordLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        passwordLabel.setForeground(darkTextColor);
+        passwordFieldPanel.add(passwordLabel, BorderLayout.NORTH);
+        
+        JPasswordField passwordField = new JPasswordField();
+        passwordField.setFont(new Font("Arial", Font.PLAIN, 14));
+        passwordField.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(200, 200, 220), 1, true),
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+        passwordFieldPanel.add(passwordField, BorderLayout.CENTER);
+        passwordPanel.add(passwordFieldPanel);
+        
+        // Confirm Password
+        JPanel confirmPasswordPanel = new JPanel(new BorderLayout(0, 5));
+        confirmPasswordPanel.setOpaque(false);
+        JLabel confirmPasswordLabel = new JLabel("Confirm Password*");
+        confirmPasswordLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        confirmPasswordLabel.setForeground(darkTextColor);
+        confirmPasswordPanel.add(confirmPasswordLabel, BorderLayout.NORTH);
+        
+        JPasswordField confirmPasswordField = new JPasswordField();
+        confirmPasswordField.setFont(new Font("Arial", Font.PLAIN, 14));
+        confirmPasswordField.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(200, 200, 220), 1, true),
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+        confirmPasswordPanel.add(confirmPasswordField, BorderLayout.CENTER);
+        passwordPanel.add(confirmPasswordPanel);
+        
+        formPanel.add(passwordPanel);
+        formPanel.add(Box.createVerticalStrut(30));
+        
+        // Create account button
+        JButton signupButton = new JButton("Create Account");
+        signupButton.setFont(new Font("Arial", Font.BOLD, 16));
+        signupButton.setBackground(primaryColor);
+        signupButton.setForeground(Color.WHITE);
+        signupButton.setFocusPainted(false);
+        signupButton.setBorder(BorderFactory.createEmptyBorder(12, 15, 12, 15));
+        signupButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        signupButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        signupButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+        
+        formPanel.add(signupButton);
+        
+        // Add action listeners
+        signupButton.addActionListener(e -> {
+            String firstName = firstNameField.getText();
+            String lastName = lastNameField.getText();
+            String middleName = middleNameField.getText();
+            String ageText = ageField.getText();
+            String birthdayText = birthdayField.getText();
+            String username = usernameField.getText();
+            String password = new String(passwordField.getPassword());
+            String confirmPassword = new String(confirmPasswordField.getPassword());
+            
+            // Validate fields
+            if (firstName.isEmpty() || lastName.isEmpty() || username.isEmpty() || password.isEmpty()) {
+                JOptionPane.showMessageDialog(frame, "First name, last name, username, and password are required", "Signup Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Validate age
+            int age;
+            try {
+                age = Integer.parseInt(ageText);
+                if (age <= 0) {
+                    JOptionPane.showMessageDialog(frame, "Please enter a valid age", "Signup Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "Please enter a valid age", "Signup Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Validate birthday
+            Date birthday;
+            try {
+                birthday = dateFormat.parse(birthdayText);
+            } catch (ParseException ex) {
+                JOptionPane.showMessageDialog(frame, "Please enter a valid birthday in MM/DD/YYYY format", "Signup Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Validate password match
+            if (!password.equals(confirmPassword)) {
+                JOptionPane.showMessageDialog(frame, "Passwords do not match", "Signup Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Check if username already exists
+            if (userData.containsKey(username)) {
+                JOptionPane.showMessageDialog(frame, "Username already exists", "Signup Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Create new user
+            UserData newUser = new UserData(firstName, lastName, middleName, age, birthday, username, password);
+            userData.put(username, newUser);
+            userProfiles.put(username, new ArrayList<>());
+            saveUserData();
+            
+            JOptionPane.showMessageDialog(frame, "Account created successfully", "Signup Success", JOptionPane.INFORMATION_MESSAGE);
+            
+            // Log in the new user
+            currentUser = username;
+            updateHomePanel();
+            cardLayout.show(mainPanel, "home");
+        });
+        
+        backButton.addActionListener(e -> {
+            cardLayout.show(mainPanel, "login");
+        });
+        
+        // Add scroll pane for the form panel
+        JScrollPane scrollPane = new JScrollPane(formPanel);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        
+        // Add panels to main signup panel
+        signupPanel.add(headerPanel, BorderLayout.NORTH);
+        signupPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        mainPanel.add(signupPanel, "signup");
+    }
+    
+    private void createHomePanel() {
+        JPanel homePanel = new JPanel(new BorderLayout(20, 20));
+        homePanel.setBackground(lightBgColor);
+        homePanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        
+        // This panel will be dynamically updated when the user logs in
+        mainPanel.add(homePanel, "home");
+    }
+    
+    private void updateHomePanel() {
+        // Get the home panel
+        JPanel homePanel = (JPanel) getComponentByName(mainPanel, "home");
+        homePanel.removeAll();
+        
+        // Get current user data
+        UserData user = userData.get(currentUser);
+        List<PersonalityProfile> profiles = userProfiles.get(currentUser);
+        int quizCount = profiles != null ? profiles.size() : 0;
+        
+        // Create welcome header
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setOpaque(false);
+        
+        JLabel welcomeLabel = new JLabel("Welcome to Your Dashboard, " + user.getFirstName() + "!");
+        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        welcomeLabel.setForeground(primaryColor);
+        welcomeLabel.setHorizontalAlignment(JLabel.LEFT);
+        headerPanel.add(welcomeLabel, BorderLayout.WEST);
+        
+        JButton signOutButton = new JButton("Sign Out");
+        signOutButton.setBackground(Color.GRAY);
+        signOutButton.setForeground(Color.WHITE);
+        signOutButton.setFocusPainted(false);
+        headerPanel.add(signOutButton, BorderLayout.EAST);
+        
+        homePanel.add(headerPanel, BorderLayout.NORTH);
+        
+        // Create main content panel with grid layout
+        JPanel contentPanel = new JPanel(new GridLayout(2, 2, 20, 20));
+        contentPanel.setOpaque(false);
+        
+        // Card 1: User Profile
+        JPanel profileCard = createDashboardCard("User Profile", "View and manage your personal information", "Profile");
+        profileCard.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                updateProfilePanel();
+                cardLayout.show(mainPanel, "profile");
+            }
+        });
+        
+        // Card 2: Take Quiz
+        JPanel quizCard = createDashboardCard("Take New Quiz", "Start a new personality assessment", "Quiz");
+        quizCard.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                cardLayout.show(mainPanel, "quizIntro");
+            }
+        });
+        
+        // Card 3: Quiz Results
+        JPanel resultsCard = createDashboardCard("Quiz Results", 
+                                               quizCount > 0 ? "You have taken " + quizCount + " quiz(es)" : "No quizzes taken yet", 
+                                               "Results");
+        resultsCard.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (quizCount > 0) {
+                    updateProfilePanel();
+                    cardLayout.show(mainPanel, "profile");
+                    // Select the Results tab
+                    JTabbedPane tabbedPane = findTabbedPane(getComponentByName(mainPanel, "profile"));
+                    if (tabbedPane != null) {
+                        tabbedPane.setSelectedIndex(1);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(frame, "You haven't taken any quizzes yet. Take a quiz to see your results.", "No Results", JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+        });
+        
+        // Card 4: Change Password
+        JPanel passwordCard = createDashboardCard("Change Password", "Update your account password", "Security");
+        passwordCard.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                cardLayout.show(mainPanel, "changePassword");
+            }
+        });
+        
+        contentPanel.add(profileCard);
+        contentPanel.add(quizCard);
+        contentPanel.add(resultsCard);
+        contentPanel.add(passwordCard);
+        
+        homePanel.add(contentPanel, BorderLayout.CENTER);
+        
+        // Add action listeners
+        signOutButton.addActionListener(e -> {
+            currentUser = null;
+            cardLayout.show(mainPanel, "login");
+        });
+        
+        homePanel.revalidate();
+        homePanel.repaint();
+    }
+    
+    private JPanel createDashboardCard(String title, String description, String category) {
+        JPanel card = new JPanel(new BorderLayout(10, 10));
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(200, 200, 200), 1, true),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
+        
+        // Category label
+        JLabel categoryLabel = new JLabel(category);
+        categoryLabel.setFont(new Font("Arial", Font.BOLD, 12));
+        categoryLabel.setForeground(accentColor);
+        card.add(categoryLabel, BorderLayout.NORTH);
+        
+        // Center content
+        JPanel centerPanel = new JPanel(new BorderLayout(5, 10));
+        centerPanel.setOpaque(false);
+        
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        titleLabel.setForeground(darkTextColor);
+        centerPanel.add(titleLabel, BorderLayout.NORTH);
+        
+        JLabel descLabel = new JLabel("<html><body width='200px'>" + description + "</body></html>");
+        descLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        descLabel.setForeground(new Color(100, 100, 100));
+        centerPanel.add(descLabel, BorderLayout.CENTER);
+        
+        card.add(centerPanel, BorderLayout.CENTER);
+        
+        // Click instruction
+        JLabel clickLabel = new JLabel("Click to open");
+        clickLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        clickLabel.setForeground(new Color(150, 150, 150));
+        clickLabel.setHorizontalAlignment(JLabel.RIGHT);
+        card.add(clickLabel, BorderLayout.SOUTH);
+        
+        // Make the card interactive
+        card.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        card.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                card.setBackground(new Color(245, 245, 255));
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e) {
+                card.setBackground(Color.WHITE);
+            }
+        });
+        
+        return card;
+    }
+    
+    private JTabbedPane findTabbedPane(Component component) {
+        if (component instanceof JTabbedPane) {
+            return (JTabbedPane) component;
+        }
+        
+        if (component instanceof Container) {
+            Container container = (Container) component;
+            for (Component child : container.getComponents()) {
+                JTabbedPane found = findTabbedPane(child);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    private void createProfilePanel() {
+        JPanel profilePanel = new JPanel(new BorderLayout(20, 20));
+        profilePanel.setBackground(lightBgColor);
+        profilePanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        
+        // This panel will be dynamically updated when the user views their profile
+        mainPanel.add(profilePanel, "profile");
+    }
+    
+    private void updateProfilePanel() {
+        // Get the profile panel
+        JPanel profilePanel = (JPanel) getComponentByName(mainPanel, "profile");
+        profilePanel.removeAll();
+        
+        // Get current user data
+        UserData user = userData.get(currentUser);
+        
+        // Create profile header
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setOpaque(false);
+        
+        JLabel profileLabel = new JLabel("User Profile");
+        profileLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        profileLabel.setForeground(primaryColor);
+        profileLabel.setHorizontalAlignment(JLabel.LEFT);
+        headerPanel.add(profileLabel, BorderLayout.WEST);
+        
+        JButton backButton = new JButton("Back to Dashboard");
+        backButton.setBackground(primaryColor);
+        backButton.setForeground(Color.WHITE);
+        backButton.setFocusPainted(false);
+        headerPanel.add(backButton, BorderLayout.EAST);
+        
+        profilePanel.add(headerPanel, BorderLayout.NORTH);
+        
+        // Create tabbed pane for profile sections
+        JTabbedPane tabbedPane = new JTabbedPane();
+        
+        // User details panel
+        JPanel userDetailsPanel = new JPanel(new GridBagLayout());
+        userDetailsPanel.setBackground(Color.WHITE);
+        userDetailsPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 10, 8, 10);
+        gbc.anchor = GridBagConstraints.WEST;
+        
+        // Add user details
+        addProfileField(userDetailsPanel, gbc, "First Name:", user.getFirstName(), 0);
+        addProfileField(userDetailsPanel, gbc, "Last Name:", user.getLastName(), 1);
+        addProfileField(userDetailsPanel, gbc, "Middle Name:", user.getMiddleName(), 2);
+        addProfileField(userDetailsPanel, gbc, "Age:", String.valueOf(user.getAge()), 3);
+        addProfileField(userDetailsPanel, gbc, "Birthday:", dateFormat.format(user.getBirthday()), 4);
+        addProfileField(userDetailsPanel, gbc, "Username:", user.getUsername(), 5);
+        
+        // Add change password button
+        JButton changePasswordButton = new JButton("Change Password");
+        changePasswordButton.setBackground(accentColor);
+        changePasswordButton.setForeground(Color.WHITE);
+        changePasswordButton.setFocusPainted(false);
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(20, 10, 5, 10);
+        userDetailsPanel.add(changePasswordButton, gbc);
+        
+        changePasswordButton.addActionListener(e -> {
+            cardLayout.show(mainPanel, "changePassword");
+        });
+        
+        // Results panel
+        JPanel resultsPanel = new JPanel(new BorderLayout());
+        resultsPanel.setBackground(Color.WHITE);
+        resultsPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        // Check if user has any quiz results
+        List<PersonalityProfile> profiles = userProfiles.get(currentUser);
+        
+        if (profiles == null || profiles.isEmpty()) {
+            JPanel noResultsPanel = new JPanel(new BorderLayout());
+            noResultsPanel.setBackground(Color.WHITE);
+            
+            JLabel noResultsLabel = new JLabel("No quiz results available. Take a quiz to see your results here.");
+            noResultsLabel.setHorizontalAlignment(JLabel.CENTER);
+            noResultsLabel.setFont(new Font("Arial", Font.ITALIC, 16));
+            noResultsLabel.setForeground(darkTextColor);
+            
+            JButton takeQuizButton = new JButton("Take a Quiz Now");
+            takeQuizButton.setBackground(primaryColor);
+            takeQuizButton.setForeground(Color.WHITE);
+            takeQuizButton.setFocusPainted(false);
+            takeQuizButton.addActionListener(e -> {
+                cardLayout.show(mainPanel, "quizIntro");
+            });
+            
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            buttonPanel.setOpaque(false);
+            buttonPanel.add(takeQuizButton);
+            
+            noResultsPanel.add(noResultsLabel, BorderLayout.CENTER);
+            noResultsPanel.add(buttonPanel, BorderLayout.SOUTH);
+            
+            resultsPanel.add(noResultsPanel, BorderLayout.CENTER);
+        } else {
+            // Create a panel to display all results
+            JPanel allResultsPanel = new JPanel();
+            allResultsPanel.setLayout(new BoxLayout(allResultsPanel, BoxLayout.Y_AXIS));
+            allResultsPanel.setBackground(Color.WHITE);
+            
+            // Add each result
+            for (int i = 0; i < profiles.size(); i++) {
+                PersonalityProfile profile = profiles.get(i);
+                JPanel resultPanel = createResultSummaryPanel(profile, i + 1);
+                allResultsPanel.add(resultPanel);
+                allResultsPanel.add(Box.createVerticalStrut(20)); // Add spacing
+            }
+            
+            // Add scroll pane for results
+            JScrollPane scrollPane = new JScrollPane(allResultsPanel);
+            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+            scrollPane.setBorder(null);
+            resultsPanel.add(scrollPane, BorderLayout.CENTER);
+        }
+        
+        // Add panels to tabbed pane
+        tabbedPane.addTab("User Details", userDetailsPanel);
+        tabbedPane.addTab("Quiz Results", resultsPanel);
+        
+        profilePanel.add(tabbedPane, BorderLayout.CENTER);
+        
+        // Add back button action listener
+        backButton.addActionListener(e -> {
+            cardLayout.show(mainPanel, "home");
+        });
+        
+        profilePanel.revalidate();
+        profilePanel.repaint();
+    }
+    
+    private void addProfileField(JPanel panel, GridBagConstraints gbc, String labelText, String value, int row) {
+        JLabel label = new JLabel(labelText);
+        label.setFont(new Font("Arial", Font.BOLD, 14));
+        label.setForeground(darkTextColor);
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        panel.add(label, gbc);
+        
+        JLabel valueLabel = new JLabel(value);
+        valueLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        valueLabel.setForeground(new Color(80, 80, 80));
+        gbc.gridx = 1;
+        panel.add(valueLabel, gbc);
+    }
+    
+    private JPanel createResultSummaryPanel(PersonalityProfile profile, int resultNumber) {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(200, 200, 200), 1, true),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
+        
+        // Header with result number and date
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setOpaque(false);
+        
+        JLabel resultLabel = new JLabel("Result #" + resultNumber);
+        resultLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        resultLabel.setForeground(primaryColor);
+        headerPanel.add(resultLabel, BorderLayout.WEST);
+        
+        // Add date if available
+        if (profile.getDate() != null) {
+            JLabel dateLabel = new JLabel("Taken on: " + dateFormat.format(profile.getDate()));
+            dateLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+            dateLabel.setForeground(new Color(100, 100, 100));
+            dateLabel.setHorizontalAlignment(JLabel.RIGHT);
+            headerPanel.add(dateLabel, BorderLayout.EAST);
+        }
+        
+        panel.add(headerPanel, BorderLayout.NORTH);
+        
+        // Create traits panel
+        JPanel traitsPanel = new JPanel(new GridLayout(5, 1, 5, 5));
+        traitsPanel.setOpaque(false);
+        
+        // Add trait bars
+        addTraitBar(traitsPanel, "Openness", profile.getOpenness());
+        addTraitBar(traitsPanel, "Conscientiousness", profile.getConscientiousness());
+        addTraitBar(traitsPanel, "Extraversion", profile.getExtraversion());
+        addTraitBar(traitsPanel, "Agreeableness", profile.getAgreeableness());
+        addTraitBar(traitsPanel, "Neuroticism", profile.getNeuroticism());
+        
+        panel.add(traitsPanel, BorderLayout.CENTER);
+        
+        // Add recommendation section
+        JPanel recommendationPanel = new JPanel(new BorderLayout(5, 5));
+        recommendationPanel.setOpaque(false);
+        recommendationPanel.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
+            "Learning Path Recommendation",
+            TitledBorder.LEFT,
+            TitledBorder.TOP,
+            new Font("Arial", Font.BOLD, 14),
+            primaryColor
+        ));
+        
+        // Create a summarized recommendation
+        String recommendation = createSummarizedRecommendation(profile);
+        JTextArea recommendationText = new JTextArea(recommendation);
+        recommendationText.setEditable(false);
+        recommendationText.setLineWrap(true);
+        recommendationText.setWrapStyleWord(true);
+        recommendationText.setFont(new Font("Arial", Font.PLAIN, 12));
+        recommendationText.setBackground(new Color(250, 250, 250));
+        recommendationText.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        
+        JScrollPane scrollPane = new JScrollPane(recommendationText);
+        scrollPane.setPreferredSize(new Dimension(0, 100));
+        scrollPane.setBorder(null);
+        
+        recommendationPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        // Add view full recommendation button
+        JButton viewFullButton = new JButton("View Full Recommendation");
+        viewFullButton.setBackground(accentColor);
+        viewFullButton.setForeground(Color.WHITE);
+        viewFullButton.setFocusPainted(false);
+        viewFullButton.addActionListener(e -> {
+            displayDetailedRecommendation(profile);
+        });
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setOpaque(false);
+        buttonPanel.add(viewFullButton);
+        recommendationPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        panel.add(recommendationPanel, BorderLayout.SOUTH);
+        
+        return panel;
+    }
+    
+    private String createSummarizedRecommendation(PersonalityProfile profile) {
+        StringBuilder sb = new StringBuilder();
+        
+        // Determine primary learning style based on trait combinations
+        if (profile.getOpenness() > 60 && profile.getExtraversion() > 60) {
+            sb.append("Interactive & Creative Learning: Discussion-based courses with creative components, collaborative projects with room for innovation.");
+        } else if (profile.getOpenness() > 60 && profile.getExtraversion() <= 50) {
+            sb.append("Independent Creative Learning: Self-paced courses with creative assignments, research-based learning with conceptual exploration.");
+        } else if (profile.getConscientiousness() > 60 && profile.getOpenness() <= 50) {
+            sb.append("Structured Practical Learning: Well-organized courses with clear objectives, step-by-step tutorials and practical exercises.");
+        } else if (profile.getConscientiousness() > 60 && profile.getOpenness() > 60) {
+            sb.append("Systematic Innovative Learning: Project-based learning with clear guidelines but room for creativity, research methodologies.");
+        } else if (profile.getExtraversion() > 60 && profile.getAgreeableness() > 60) {
+            sb.append("Collaborative & Supportive Learning: Team-based learning environments, peer teaching and mentoring programs.");
+        } else {
+            sb.append("Balanced Learning Approach: Mix of individual and group activities, combination of structured content and creative exploration.");
+        }
+        
+        return sb.toString();
+    }
+    
+    private void displayDetailedRecommendation(PersonalityProfile profile) {
+        JDialog dialog = new JDialog(frame, "Detailed Learning Path Recommendation", true);
+        dialog.setSize(700, 500);
+        dialog.setLocationRelativeTo(frame);
+        
+        JPanel contentPanel = new JPanel(new BorderLayout(10, 10));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        contentPanel.setBackground(Color.WHITE);
+        
+        JLabel titleLabel = new JLabel("Your Personalized Learning Path");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        titleLabel.setForeground(primaryColor);
+        contentPanel.add(titleLabel, BorderLayout.NORTH);
+        
+        // Generate full learning path recommendations
+        String learningPathRecommendation = generateLearningPathRecommendation(profile);
+        JTextArea learningPathText = new JTextArea(learningPathRecommendation);
+        learningPathText.setEditable(false);
+        learningPathText.setLineWrap(true);
+        learningPathText.setWrapStyleWord(true);
+        learningPathText.setFont(new Font("Arial", Font.PLAIN, 14));
+        learningPathText.setBackground(Color.WHITE);
+        
+        JScrollPane scrollPane = new JScrollPane(learningPathText);
+        contentPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        JButton closeButton = new JButton("Close");
+        closeButton.setBackground(primaryColor);
+        closeButton.setForeground(Color.WHITE);
+        closeButton.setFocusPainted(false);
+        closeButton.addActionListener(e -> dialog.dispose());
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setOpaque(false);
+        buttonPanel.add(closeButton);
+        contentPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.add(contentPanel);
+        dialog.setVisible(true);
+    }
+    
+    private void createChangePasswordPanel() {
+        JPanel changePasswordPanel = new JPanel(new GridBagLayout());
+        changePasswordPanel.setBackground(lightBgColor);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        
+        JLabel titleLabel = new JLabel("Change Password");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(primaryColor);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(20, 5, 30, 5);
+        changePasswordPanel.add(titleLabel, gbc);
+        
+        JLabel currentPasswordLabel = new JLabel("Current Password:");
+        currentPasswordLabel.setForeground(darkTextColor);
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        changePasswordPanel.add(currentPasswordLabel, gbc);
+        
+        JPasswordField currentPasswordField = new JPasswordField(20);
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.anchor = GridBagConstraints.WEST;
+        changePasswordPanel.add(currentPasswordField, gbc);
+        
+        JLabel newPasswordLabel = new JLabel("New Password:");
+        newPasswordLabel.setForeground(darkTextColor);
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.EAST;
+        changePasswordPanel.add(newPasswordLabel, gbc);
+        
+        JPasswordField newPasswordField = new JPasswordField(20);
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        changePasswordPanel.add(newPasswordField, gbc);
+        
+        JLabel confirmPasswordLabel = new JLabel("Confirm New Password:");
+        confirmPasswordLabel.setForeground(darkTextColor);
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.anchor = GridBagConstraints.EAST;
+        changePasswordPanel.add(confirmPasswordLabel, gbc);
+        
+        JPasswordField confirmPasswordField = new JPasswordField(20);
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        gbc.anchor = GridBagConstraints.WEST;
+        changePasswordPanel.add(confirmPasswordField, gbc);
+        
+        JButton saveButton = new JButton("Save Changes");
+        saveButton.setBackground(primaryColor);
+        saveButton.setForeground(Color.WHITE);
+        saveButton.setFocusPainted(false);
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(20, 5, 5, 5);
+        changePasswordPanel.add(saveButton, gbc);
+        
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.setBackground(Color.GRAY);
+        cancelButton.setForeground(Color.WHITE);
+        cancelButton.setFocusPainted(false);
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        changePasswordPanel.add(cancelButton, gbc);
+        
+        // Add action listeners
+        saveButton.addActionListener(e -> {
+            String currentPassword = new String(currentPasswordField.getPassword());
+            String newPassword = new String(newPasswordField.getPassword());
+            String confirmPassword = new String(confirmPasswordField.getPassword());
+            
+            // Validate current password
+            if (!userData.get(currentUser).getPassword().equals(currentPassword)) {
+                JOptionPane.showMessageDialog(frame, "Current password is incorrect", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Validate new password
+            if (newPassword.isEmpty()) {
+                JOptionPane.showMessageDialog(frame, "New password cannot be empty", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Validate password match
+            if (!newPassword.equals(confirmPassword)) {
+                JOptionPane.showMessageDialog(frame, "New passwords do not match", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Update password
+            userData.get(currentUser).setPassword(newPassword);
+            saveUserData();
+            
+            JOptionPane.showMessageDialog(frame, "Password changed successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
+            updateProfilePanel();
+            cardLayout.show(mainPanel, "profile");
+        });
+        
+        cancelButton.addActionListener(e -> {
+            cardLayout.show(mainPanel, "home");
+        });
+        
+        mainPanel.add(changePasswordPanel, "changePassword");
+    }
+    
+    private void createQuizIntroPanel() {
+        JPanel quizIntroPanel = new JPanel(new BorderLayout(20, 20));
+        quizIntroPanel.setBackground(lightBgColor);
+        quizIntroPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setOpaque(false);
+        
+        JLabel titleLabel = new JLabel("Big 5 Personality Assessment");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(primaryColor);
+        titleLabel.setHorizontalAlignment(JLabel.LEFT);
+        headerPanel.add(titleLabel, BorderLayout.WEST);
+        
+        JButton backButton = new JButton("Back to Dashboard");
+        backButton.setBackground(Color.GRAY);
+        backButton.setForeground(Color.WHITE);
+        backButton.setFocusPainted(false);
+        headerPanel.add(backButton, BorderLayout.EAST);
+        
+        quizIntroPanel.add(headerPanel, BorderLayout.NORTH);
+        
+        JPanel contentPanel = new JPanel(new BorderLayout(20, 20));
+        contentPanel.setBackground(Color.WHITE);
+        contentPanel.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(200, 200, 200), 1, true),
+            BorderFactory.createEmptyBorder(20, 20, 20, 20)
+        ));
+        
+        JTextArea introText = new JTextArea(
+            "Welcome to the Big 5 Personality Assessment!\n\n" +
+            "This quiz will help identify your personality traits based on the Big 5 model:\n" +
+            "• Openness to Experience\n" +
+            "• Conscientiousness\n" +
+            "• Extraversion\n" +
+            "• Agreeableness\n" +
+            "• Neuroticism\n\n" +
+            "Based on your results, we'll recommend personalized learning paths that align with your personality traits.\n\n" +
+            "The quiz consists of 15 questions. For each statement, indicate how accurately it describes you on a scale from 1 (Strongly Disagree) to 5 (Strongly Agree).\n\n" +
+            "Click 'Start Quiz' when you're ready to begin."
+        );
+        introText.setEditable(false);
+        introText.setLineWrap(true);
+        introText.setWrapStyleWord(true);
+        introText.setFont(new Font("Arial", Font.PLAIN, 16));
+        introText.setBackground(Color.WHITE);
+        introText.setForeground(darkTextColor);
+        
+        JScrollPane scrollPane = new JScrollPane(introText);
+        scrollPane.setBorder(null);
+        contentPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        quizIntroPanel.add(contentPanel, BorderLayout.CENTER);
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        buttonPanel.setOpaque(false);
+        
+        JButton startButton = new JButton("Start Quiz");
+        startButton.setBackground(primaryColor);
+        startButton.setForeground(Color.WHITE);
+        startButton.setFont(new Font("Arial", Font.BOLD, 16));
+        startButton.setFocusPainted(false);
+        
+        buttonPanel.add(startButton);
+        quizIntroPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        startButton.addActionListener(e -> {
+            // Reset quiz state
+            currentQuestionIndex = 0;
+            answers = new int[questions.size()];
+            updateQuizPanel();
+            cardLayout.show(mainPanel, "quiz");
+        });
+        
+        backButton.addActionListener(e -> {
+            cardLayout.show(mainPanel, "home");
+        });
+        
+        mainPanel.add(quizIntroPanel, "quizIntro");
+    }
+    
+    private void createQuizPanel() {
+        JPanel quizPanel = new JPanel(new BorderLayout(20, 20));
+        quizPanel.setBackground(lightBgColor);
+        quizPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        
+        // This panel will be dynamically updated for each question
+        mainPanel.add(quizPanel, "quiz");
+    }
+    
+    private void updateQuizPanel() {
+        // Get the quiz panel
+        JPanel quizPanel = (JPanel) getComponentByName(mainPanel, "quiz");
+        quizPanel.removeAll();
+        
+        Question currentQuestion = questions.get(currentQuestionIndex);
+        
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setOpaque(false);
+        
+        JLabel progressLabel = new JLabel("Question " + (currentQuestionIndex + 1) + " of " + questions.size());
+        progressLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        progressLabel.setForeground(primaryColor);
+        headerPanel.add(progressLabel, BorderLayout.WEST);
+        
+        // Add progress bar
+        JProgressBar progressBar = new JProgressBar(0, questions.size());
+        progressBar.setValue(currentQuestionIndex + 1);
+        progressBar.setStringPainted(true);
+        progressBar.setString((currentQuestionIndex + 1) + " / " + questions.size());
+        progressBar.setForeground(primaryColor);
+        headerPanel.add(progressBar, BorderLayout.EAST);
+        
+        quizPanel.add(headerPanel, BorderLayout.NORTH);
+        
+        JPanel contentPanel = new JPanel(new BorderLayout(10, 20));
+        contentPanel.setBackground(Color.WHITE);
+        contentPanel.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(200, 200, 200), 1, true),
+            BorderFactory.createEmptyBorder(20, 20, 20, 20)
+        ));
+        
+        JLabel questionLabel = new JLabel(currentQuestion.getText());
+        questionLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        questionLabel.setForeground(darkTextColor);
+        contentPanel.add(questionLabel, BorderLayout.NORTH);
+        
+        JPanel optionsPanel = new JPanel(new GridLayout(5, 1, 5, 10));
+        optionsPanel.setOpaque(false);
+        ButtonGroup buttonGroup = new ButtonGroup();
+        
+        String[] options = {
+            "1 - Strongly Disagree",
+            "2 - Disagree",
+            "3 - Neutral",
+            "4 - Agree",
+            "5 - Strongly Agree"
+        };
+        
+        JRadioButton[] radioButtons = new JRadioButton[5];
+        for (int i = 0; i < 5; i++) {
+            radioButtons[i] = new JRadioButton(options[i]);
+            radioButtons[i].setFont(new Font("Arial", Font.PLAIN, 16));
+            radioButtons[i].setForeground(darkTextColor);
+            radioButtons[i].setBackground(Color.WHITE);
+            final int value = i + 1;
+            radioButtons[i].addActionListener(e -> answers[currentQuestionIndex] = value);
+            buttonGroup.add(radioButtons[i]);
+            optionsPanel.add(radioButtons[i]);
+        }
+        
+        // If this question has been answered before, select the appropriate radio button
+        if (answers[currentQuestionIndex] > 0) {
+            radioButtons[answers[currentQuestionIndex] - 1].setSelected(true);
+        }
+        
+        contentPanel.add(optionsPanel, BorderLayout.CENTER);
+        quizPanel.add(contentPanel, BorderLayout.CENTER);
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        buttonPanel.setOpaque(false);
+        
+        JButton prevButton = new JButton("Previous");
+        prevButton.setFont(new Font("Arial", Font.BOLD, 16));
+        prevButton.setBackground(Color.GRAY);
+        prevButton.setForeground(Color.WHITE);
+        prevButton.setFocusPainted(false);
+        prevButton.setEnabled(currentQuestionIndex > 0);
+        
+        JButton nextButton = new JButton(currentQuestionIndex == questions.size() - 1 ? "Finish" : "Next");
+        nextButton.setFont(new Font("Arial", Font.BOLD, 16));
+        nextButton.setBackground(primaryColor);
+        nextButton.setForeground(Color.WHITE);
+        nextButton.setFocusPainted(false);
+        
+        buttonPanel.add(prevButton);
+        buttonPanel.add(nextButton);
+        quizPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        prevButton.addActionListener(e -> {
+            currentQuestionIndex--;
+            updateQuizPanel();
+        });
+        
+        nextButton.addActionListener(e -> {
+            if (answers[currentQuestionIndex] == 0) {
+                JOptionPane.showMessageDialog(frame, "Please select an answer before continuing", "Warning", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
+            if (currentQuestionIndex == questions.size() - 1) {
+                // Last question, calculate results
+                PersonalityProfile profile = calculatePersonalityProfile();
+                
+                // Add date to profile
+                profile.setDate(new Date());
+                
+                // Save profile to user's profiles
+                if (!userProfiles.containsKey(currentUser)) {
+                    userProfiles.put(currentUser, new ArrayList<>());
+                }
+                userProfiles.get(currentUser).add(profile);
+                saveUserData();
+                
+                displayResults(profile);
+                cardLayout.show(mainPanel, "results");
+            } else {
+                // Move to next question
+                currentQuestionIndex++;
+                updateQuizPanel();
+            }
+        });
+        
+        quizPanel.revalidate();
+        quizPanel.repaint();
+    }
+    
+    private void createResultsPanel() {
+        JPanel resultsPanel = new JPanel(new BorderLayout(20, 20));
+        resultsPanel.setBackground(lightBgColor);
+        resultsPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        
+        // This panel will be dynamically updated with results
+        mainPanel.add(resultsPanel, "results");
+    }
+    
+    private void displayResults(PersonalityProfile profile) {
+        // Get the results panel
+        JPanel resultsPanel = (JPanel) getComponentByName(mainPanel, "results");
+        resultsPanel.removeAll();
+        
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setOpaque(false);
+        
+        JLabel titleLabel = new JLabel("Your Personality Profile");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setForeground(primaryColor);
+        headerPanel.add(titleLabel, BorderLayout.WEST);
+        
+        resultsPanel.add(headerPanel, BorderLayout.NORTH);
+        
+        JPanel contentPanel = new JPanel(new BorderLayout(20, 20));
+        contentPanel.setOpaque(false);
+        
+        // Create traits panel
+        JPanel traitsPanel = new JPanel(new GridLayout(5, 1, 10, 10));
+        traitsPanel.setBackground(Color.WHITE);
+        traitsPanel.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(200, 200, 200), 1, true),
+            BorderFactory.createTitledBorder(
+                BorderFactory.createEmptyBorder(15, 15, 15, 15),
+                "Big 5 Personality Traits",
+                TitledBorder.LEFT,
+                TitledBorder.TOP,
+                new Font("Arial", Font.BOLD, 16),
+                primaryColor
+            )
+        ));
+        
+        // Add trait bars
+        addTraitBar(traitsPanel, "Openness", profile.getOpenness());
+        addTraitBar(traitsPanel, "Conscientiousness", profile.getConscientiousness());
+        addTraitBar(traitsPanel, "Extraversion", profile.getExtraversion());
+        addTraitBar(traitsPanel, "Agreeableness", profile.getAgreeableness());
+        addTraitBar(traitsPanel, "Neuroticism", profile.getNeuroticism());
+        
+        contentPanel.add(traitsPanel, BorderLayout.NORTH);
+        
+        // Create learning path panel
+        JPanel learningPathPanel = new JPanel(new BorderLayout(10, 10));
+        learningPathPanel.setBackground(Color.WHITE);
+        learningPathPanel.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(new Color(200, 200, 200), 1, true),
+            BorderFactory.createTitledBorder(
+                BorderFactory.createEmptyBorder(15, 15, 15, 15),
+                "Personalized Learning Path",
+                TitledBorder.LEFT,
+                TitledBorder.TOP,
+                new Font("Arial", Font.BOLD, 16),
+                primaryColor
+            )
+        ));
+        
+        JTextArea learningPathText = new JTextArea();
+        learningPathText.setEditable(false);
+        learningPathText.setLineWrap(true);
+        learningPathText.setWrapStyleWord(true);
+        learningPathText.setFont(new Font("Arial", Font.PLAIN, 14));
+        learningPathText.setBackground(Color.WHITE);
+        
+        // Generate learning path recommendations based on personality profile
+        String learningPathRecommendation = generateLearningPathRecommendation(profile);
+        learningPathText.setText(learningPathRecommendation);
+        
+        JScrollPane scrollPane = new JScrollPane(learningPathText);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        learningPathPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        contentPanel.add(learningPathPanel, BorderLayout.CENTER);
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        buttonPanel.setOpaque(false);
+        
+        JButton homeButton = new JButton("Back to Dashboard");
+        homeButton.setFont(new Font("Arial", Font.BOLD, 16));
+        homeButton.setBackground(primaryColor);
+        homeButton.setForeground(Color.WHITE);
+        homeButton.setFocusPainted(false);
+        
+        JButton profileButton = new JButton("View All Results");
+        profileButton.setFont(new Font("Arial", Font.BOLD, 16));
+        profileButton.setBackground(accentColor);
+        profileButton.setForeground(Color.WHITE);
+        profileButton.setFocusPainted(false);
+        
+        buttonPanel.add(homeButton);
+        buttonPanel.add(profileButton);
+        resultsPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        homeButton.addActionListener(e -> {
+            updateHomePanel();
+            cardLayout.show(mainPanel, "home");
+        });
+        
+        profileButton.addActionListener(e -> {
+            updateProfilePanel();
+            cardLayout.show(mainPanel, "profile");
+            // Select the Results tab
+            JTabbedPane tabbedPane = findTabbedPane(getComponentByName(mainPanel, "profile"));
+            if (tabbedPane != null) {
+                tabbedPane.setSelectedIndex(1);
+            }
+        });
+        
+        resultsPanel.revalidate();
+        resultsPanel.repaint();
+    }
+    
+    private void addTraitBar(JPanel panel, String traitName, int value) {
+        JPanel traitPanel = new JPanel(new BorderLayout(10, 0));
+        traitPanel.setOpaque(false);
+        
+        JLabel nameLabel = new JLabel(traitName);
+        nameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        nameLabel.setForeground(darkTextColor);
+        nameLabel.setPreferredSize(new Dimension(150, 20));
+        traitPanel.add(nameLabel, BorderLayout.WEST);
+        
+        JProgressBar progressBar = new JProgressBar(0, 100);
+        progressBar.setValue(value);
+        progressBar.setStringPainted(true);
+        progressBar.setString(value + "%");
+        
+        // Set color based on value
+        if (value < 30) {
+            progressBar.setForeground(new Color(255, 102, 102)); // Light red
+        } else if (value < 70) {
+            progressBar.setForeground(new Color(255, 204, 0)); // Yellow
+        } else {
+            progressBar.setForeground(new Color(102, 204, 0)); // Green
+        }
+        
+        traitPanel.add(progressBar, BorderLayout.CENTER);
+        
+        // Add value label
+        JLabel valueLabel = new JLabel(getTraitDescription(traitName, value));
+        valueLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+        valueLabel.setForeground(new Color(100, 100, 100));
+        traitPanel.add(valueLabel, BorderLayout.EAST);
+        
+        panel.add(traitPanel);
+    }
+    
+    private String getTraitDescription(String trait, int value) {
+        if (value < 30) {
+            return "Low";
+        } else if (value < 70) {
+            return "Moderate";
+        } else {
+            return "High";
+        }
+    }
+    
+    private boolean authenticateUser(String username, String password) {
+        return userData.containsKey(username) && userData.get(username).getPassword().equals(password);
+    }
+    
+    private void initializeQuestions() {
+        questions = new ArrayList<>();
+        
+        // Openness questions
+        questions.add(new Question("I have a vivid imagination.", PersonalityTrait.OPENNESS));
+        questions.add(new Question("I am interested in abstract ideas.", PersonalityTrait.OPENNESS));
+        questions.add(new Question("I enjoy trying new activities and experiences.", PersonalityTrait.OPENNESS));
+        
+        // Conscientiousness questions
+        questions.add(new Question("I am always prepared.", PersonalityTrait.CONSCIENTIOUSNESS));
+        questions.add(new Question("I pay attention to details.", PersonalityTrait.CONSCIENTIOUSNESS));
+        questions.add(new Question("I like to follow a schedule.", PersonalityTrait.CONSCIENTIOUSNESS));
+        
+        // Extraversion questions
+        questions.add(new Question("I feel comfortable around people.", PersonalityTrait.EXTRAVERSION));
+        questions.add(new Question("I start conversations with strangers easily.", PersonalityTrait.EXTRAVERSION));
+        questions.add(new Question("I enjoy being the center of attention.", PersonalityTrait.EXTRAVERSION));
+        
+        // Agreeableness questions
+        questions.add(new Question("I am interested in other people's problems.", PersonalityTrait.AGREEABLENESS));
+        questions.add(new Question("I sympathize with others' feelings.", PersonalityTrait.AGREEABLENESS));
+        questions.add(new Question("I make people feel at ease.", PersonalityTrait.AGREEABLENESS));
+        
+        // Neuroticism questions
+        questions.add(new Question("I get stressed out easily.", PersonalityTrait.NEUROTICISM));
+        questions.add(new Question("I worry about things.", PersonalityTrait.NEUROTICISM));
+        questions.add(new Question("I am easily disturbed by events.", PersonalityTrait.NEUROTICISM));
+    }
+    
+    private PersonalityProfile calculatePersonalityProfile() {
+        int opennessSum = 0;
+        int conscientiousnessSum = 0;
+        int extraversionSum = 0;
+        int agreeablenessSum = 0;
+        int neuroticismSum = 0;
+        
+        int opennessCount = 0;
+        int conscientiousnessCount = 0;
+        int extraversionCount = 0;
+        int agreeablenessCount = 0;
+        int neuroticismCount = 0;
+        
+        for (int i = 0; i < questions.size(); i++) {
+            Question question = questions.get(i);
+            int answer = answers[i];
+            
+            switch (question.getTrait()) {
+                case OPENNESS:
+                    opennessSum += answer;
+                    opennessCount++;
+                    break;
+                case CONSCIENTIOUSNESS:
+                    conscientiousnessSum += answer;
+                    conscientiousnessCount++;
+                    break;
+                case EXTRAVERSION:
+                    extraversionSum += answer;
+                    extraversionCount++;
+                    break;
+                case AGREEABLENESS:
+                    agreeablenessSum += answer;
+                    agreeablenessCount++;
+                    break;
+                case NEUROTICISM:
+                    neuroticismSum += answer;
+                    neuroticismCount++;
+                    break;
+            }
+        }
+        
+        // Calculate percentages (1-5 scale converted to 0-100%)
+        int openness = (int) ((opennessSum / (double) (opennessCount * 5)) * 100);
+        int conscientiousness = (int) ((conscientiousnessSum / (double) (conscientiousnessCount * 5)) * 100);
+        int extraversion = (int) ((extraversionSum / (double) (extraversionCount * 5)) * 100);
+        int agreeableness = (int) ((agreeablenessSum / (double) (agreeablenessCount * 5)) * 100);
+        int neuroticism = (int) ((neuroticismSum / (double) (neuroticismCount * 5)) * 100);
+        
+        return new PersonalityProfile(openness, conscientiousness, extraversion, agreeableness, neuroticism);
+    }
+    
+    private String generateLearningPathRecommendation(PersonalityProfile profile) {
+        StringBuilder sb = new StringBuilder();
+        
+        // Overall personality type
+        sb.append("Your Personality Overview:\n\n");
+        
+        // Determine dominant traits (traits with scores > 70%)
+        List<String> dominantTraits = new ArrayList<>();
+        if (profile.getOpenness() > 70) dominantTraits.add("Openness to Experience");
+        if (profile.getConscientiousness() > 70) dominantTraits.add("Conscientiousness");
+        if (profile.getExtraversion() > 70) dominantTraits.add("Extraversion");
+        if (profile.getAgreeableness() > 70) dominantTraits.add("Agreeableness");
+        if (profile.getNeuroticism() > 70) dominantTraits.add("Neuroticism");
+        
+        if (!dominantTraits.isEmpty()) {
+            sb.append("Your dominant traits are: ").append(String.join(", ", dominantTraits)).append(".\n\n");
+        } else {
+            sb.append("You have a balanced personality profile without strongly dominant traits.\n\n");
+        }
+        
+        // Learning style recommendations based on traits
+        sb.append("Recommended Learning Approaches:\n\n");
+        
+        // Openness recommendations
+        sb.append("Openness to Experience (").append(profile.getOpenness()).append("%):\n");
+        if (profile.getOpenness() > 70) {
+            sb.append("• You thrive with creative, conceptual learning approaches\n");
+            sb.append("• Explore interdisciplinary subjects and connect diverse ideas\n");
+            sb.append("• Consider project-based learning with room for innovation\n");
+        } else if (profile.getOpenness() < 30) {
+            sb.append("• You may prefer practical, concrete learning materials\n");
+            sb.append("• Focus on established methods and clear instructions\n");
+            sb.append("• Consider structured learning paths with clear objectives\n");
+        } else {
+            sb.append("• Balance theoretical concepts with practical applications\n");
+            sb.append("• Mix established methods with some creative exploration\n");
+        }
+        sb.append("\n");
+        
+        // Conscientiousness recommendations
+        sb.append("Conscientiousness (").append(profile.getConscientiousness()).append("%):\n");
+        if (profile.getConscientiousness() > 70) {
+            sb.append("• Create detailed study schedules and stick to them\n");
+            sb.append("• Use systematic approaches with clear milestones\n");
+            sb.append("• Set specific goals and track your progress\n");
+        } else if (profile.getConscientiousness() < 30) {
+            sb.append("• Use external accountability systems or study groups\n");
+            sb.append("• Break learning into smaller, manageable chunks\n");
+            sb.append("• Consider gamified learning to maintain motivation\n");
+        } else {
+            sb.append("• Balance structured learning with flexibility\n");
+            sb.append("• Set moderate goals with some room for adjustment\n");
+        }
+        sb.append("\n");
+        
+        // Extraversion recommendations
+        sb.append("Extraversion (").append(profile.getExtraversion()).append("%):\n");
+        if (profile.getExtraversion() > 70) {
+            sb.append("• Engage in group learning and discussion-based classes\n");
+            sb.append("• Consider teaching concepts to others to reinforce learning\n");
+            sb.append("• Join study groups or collaborative learning environments\n");
+        } else if (profile.getExtraversion() < 30) {
+            sb.append("• Focus on independent study with self-paced materials\n");
+            sb.append("• Consider online courses with minimal group interaction\n");
+            sb.append("• Create a quiet, distraction-free learning environment\n");
+        } else {
+            sb.append("• Balance individual study with occasional group work\n");
+            sb.append("• Mix self-paced learning with discussion-based activities\n");
+        }
+        sb.append("\n");
+        
+        // Agreeableness recommendations
+        sb.append("Agreeableness (").append(profile.getAgreeableness()).append("%):\n");
+        if (profile.getAgreeableness() > 70) {
+            sb.append("• Seek cooperative learning environments\n");
+            sb.append("• Consider service-learning or helping others understand concepts\n");
+            sb.append("• Look for mentorship opportunities\n");
+        } else if (profile.getAgreeableness() < 30) {
+            sb.append("• Focus on independent, self-directed learning\n");
+            sb.append("• Consider competitive learning environments\n");
+            sb.append("• Develop skills in constructive criticism and debate\n");
+        } else {
+            sb.append("• Balance cooperative and independent learning\n");
+            sb.append("• Mix collaborative projects with individual assignments\n");
+            sb.append("• Practice both giving and receiving feedback\n");
+        }
+        sb.append("\n");
+        
+        // Neuroticism recommendations
+        sb.append("Neuroticism (").append(profile.getNeuroticism()).append("%):\n");
+        if (profile.getNeuroticism() > 70) {
+            sb.append("• Incorporate stress management techniques into your study routine\n");
+            sb.append("• Break learning into smaller, manageable goals to reduce anxiety\n");
+            sb.append("• Consider mindfulness practices before challenging learning sessions\n");
+        } else if (profile.getNeuroticism() < 30) {
+            sb.append("• Challenge yourself with ambitious learning goals\n");
+            sb.append("• Consider fast-paced learning environments\n");
+            sb.append("• Take on leadership roles in group learning settings\n");
+        } else {
+            sb.append("• Balance challenging material with adequate preparation\n");
+            sb.append("• Practice basic stress management for difficult topics\n");
+        }
+        sb.append("\n");
+        
+        // Specific learning path recommendations
+        sb.append("Recommended Learning Paths:\n\n");
+        
+        // Determine primary learning style based on trait combinations
+        if (profile.getOpenness() > 60 && profile.getExtraversion() > 60) {
+            sb.append("Interactive & Creative Learning:\n");
+            sb.append("• Discussion-based courses with creative components\n");
+            sb.append("• Collaborative projects with room for innovation\n");
+            sb.append("• Workshops and interactive seminars\n");
+        } else if (profile.getOpenness() > 60 && profile.getExtraversion() <= 50) {
+            sb.append("Independent Creative Learning:\n");
+            sb.append("• Self-paced courses with creative assignments\n");
+            sb.append("• Research-based learning with conceptual exploration\n");
+            sb.append("• Arts and design-focused independent study\n");
+        } else if (profile.getConscientiousness() > 60 && profile.getOpenness() <= 50) {
+            sb.append("Structured Practical Learning:\n");
+            sb.append("• Well-organized courses with clear objectives\n");
+            sb.append("• Step-by-step tutorials and practical exercises\n");
+            sb.append("• Certification programs with defined milestones\n");
+        } else if (profile.getConscientiousness() > 60 && profile.getOpenness() > 60) {
+            sb.append("Systematic Innovative Learning:\n");
+            sb.append("• Project-based learning with clear guidelines but room for creativity\n");
+            sb.append("• Research methodologies and experimental design\n");
+            sb.append("• Structured courses that encourage critical thinking\n");
+        } else if (profile.getExtraversion() > 60 && profile.getAgreeableness() > 60) {
+            sb.append("Collaborative & Supportive Learning:\n");
+            sb.append("• Team-based learning environments\n");
+            sb.append("• Peer teaching and mentoring programs\n");
+            sb.append("• Community service learning projects\n");
+        } else {
+            sb.append("Balanced Learning Approach:\n");
+            sb.append("• Mix of individual and group activities\n");
+            sb.append("• Combination of structured content and creative exploration\n");
+            sb.append("• Varied learning formats (reading, discussion, practice)\n");
+        }
+        
+        return sb.toString();
+    }
+    
+    private Component getComponentByName(Container container, String name) {
+        for (Component component : container.getComponents()) {
+            if (name.equals(component.getName())) {
+                return component;
+            }
+        }
+        
+        // If not found by name, return the component by card layout name
+        CardLayout layout = (CardLayout) container.getLayout();
+        for (Component component : container.getComponents()) {
+            // Try to show this component
+            layout.show(container, name);
+            // If this is the visible component, it's the one we want
+            if (component.isVisible()) {
+                return component;
+            }
+        }
+        
+        return null;
+    }
+    
+    private void loadUserData() {
+        try {
+            File userDataFile = new File("user_data.dat");
+            File profilesFile = new File("user_profiles.dat");
+            
+            if (userDataFile.exists()) {
+                try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(userDataFile))) {
+                    userData = (Map<String, UserData>) ois.readObject();
+                }
+            }
+            
+            if (profilesFile.exists()) {
+                try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(profilesFile))) {
+                    userProfiles = (Map<String, List<PersonalityProfile>>) ois.readObject();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // If loading fails, start with empty maps
+            userData = new HashMap<>();
+            userProfiles = new HashMap<>();
+        }
+    }
+    
+    private void saveUserData() {
+        try {
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("user_data.dat"))) {
+                oos.writeObject(userData);
+            }
+            
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("user_profiles.dat"))) {
+                oos.writeObject(userProfiles);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(frame, "Error saving user data", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    // Inner classes
+    
+    private enum PersonalityTrait {
+        OPENNESS,
+        CONSCIENTIOUSNESS,
+        EXTRAVERSION,
+        AGREEABLENESS,
+        NEUROTICISM
+    }
+    
+    private static class Question implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private String text;
+        private PersonalityTrait trait;
+        
+        public Question(String text, PersonalityTrait trait) {
+            this.text = text;
+            this.trait = trait;
+        }
+        
+        public String getText() {
+            return text;
+        }
+        
+        public PersonalityTrait getTrait() {
+            return trait;
+        }
+    }
+    
+    private static class PersonalityProfile implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private int openness;
+        private int conscientiousness;
+        private int extraversion;
+        private int agreeableness;
+        private int neuroticism;
+        private Date date;
+        
+        public PersonalityProfile(int openness, int conscientiousness, int extraversion, int agreeableness, int neuroticism) {
+            this.openness = openness;
+            this.conscientiousness = conscientiousness;
+            this.extraversion = extraversion;
+            this.agreeableness = agreeableness;
+            this.neuroticism = neuroticism;
+            this.date = new Date();
+        }
+        
+        public int getOpenness() {
+            return openness;
+        }
+        
+        public int getConscientiousness() {
+            return conscientiousness;
+        }
+        
+        public int getExtraversion() {
+            return extraversion;
+        }
+        
+        public int getAgreeableness() {
+            return agreeableness;
+        }
+        
+        public int getNeuroticism() {
+            return neuroticism;
+        }
+        
+        public Date getDate() {
+            return date;
+        }
+        
+        public void setDate(Date date) {
+            this.date = date;
+        }
+    }
+    
+    private static class UserData implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private String firstName;
+        private String lastName;
+        private String middleName;
+        private int age;
+        private Date birthday;
+        private String username;
+        private String password;
+        
+        public UserData(String firstName, String lastName, String middleName, int age, Date birthday, String username, String password) {
+            this.firstName = firstName;
+            this.lastName = lastName;
+            this.middleName = middleName;
+            this.age = age;
+            this.birthday = birthday;
+            this.username = username;
+            this.password = password;
+        }
+        
+        public String getFirstName() {
+            return firstName;
+        }
+        
+        public String getLastName() {
+            return lastName;
+        }
+        
+        public String getMiddleName() {
+            return middleName;
+        }
+        
+        public int getAge() {
+            return age;
+        }
+        
+        public Date getBirthday() {
+            return birthday;
+        }
+        
+        public String getUsername() {
+            return username;
+        }
+        
+        public String getPassword() {
+            return password;
+        }
+        
+        public void setPassword(String password) {
+            this.password = password;
+        }
+    }
+}
+
