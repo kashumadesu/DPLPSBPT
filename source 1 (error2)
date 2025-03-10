@@ -1,0 +1,818 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.util.*;
+import java.util.List;
+
+public class PersonalityQuizApp1 {
+    // Main application frame
+    private JFrame frame;
+    
+    // Card layout for switching between screens
+    private CardLayout cardLayout;
+    private JPanel mainPanel;
+    
+    // User data storage
+    private Map<String, String> userCredentials = new HashMap<>();
+    private Map<String, PersonalityProfile> userProfiles = new HashMap<>();
+    
+    // Current user
+    private String currentUser = null;
+    
+    // Quiz data
+    private List<Question> questions;
+    private int currentQuestionIndex = 0;
+    private int[] answers;
+    
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            new PersonalityQuizApp1().initialize();
+        });
+    }
+    
+    public void initialize() {
+        // Load user data
+        loadUserData();
+        
+        // Initialize quiz questions
+        initializeQuestions();
+        
+        // Create main frame
+        frame = new JFrame("Personality-Based Learning Path System");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(800, 600);
+        frame.setLocationRelativeTo(null);
+        
+        // Create card layout and main panel
+        cardLayout = new CardLayout();
+        mainPanel = new JPanel(cardLayout);
+        
+        // Create different screens
+        createLoginPanel();
+        createSignupPanel();
+        createQuizIntroPanel();
+        createQuizPanel();
+        createResultsPanel();
+        
+        // Add main panel to frame
+        frame.add(mainPanel);
+        
+        // Show the frame
+        frame.setVisible(true);
+    }
+    
+    private void createLoginPanel() {
+        JPanel loginPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        
+        JLabel titleLabel = new JLabel("Personality-Based Learning Path System");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(20, 5, 30, 5);
+        loginPanel.add(titleLabel, gbc);
+        
+        JLabel usernameLabel = new JLabel("Username:");
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        loginPanel.add(usernameLabel, gbc);
+        
+        JTextField usernameField = new JTextField(20);
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.anchor = GridBagConstraints.WEST;
+        loginPanel.add(usernameField, gbc);
+        
+        JLabel passwordLabel = new JLabel("Password:");
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.EAST;
+        loginPanel.add(passwordLabel, gbc);
+        
+        JPasswordField passwordField = new JPasswordField(20);
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        loginPanel.add(passwordField, gbc);
+        
+        JButton loginButton = new JButton("Login");
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(20, 5, 5, 5);
+        loginPanel.add(loginButton, gbc);
+        
+        JButton signupButton = new JButton("Sign Up");
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        loginPanel.add(signupButton, gbc);
+        
+        // Add action listeners
+        loginButton.addActionListener(e -> {
+            String username = usernameField.getText();
+            String password = new String(passwordField.getPassword());
+            
+            if (authenticateUser(username, password)) {
+                currentUser = username;
+                if (userProfiles.containsKey(username)) {
+                    // User has already taken the quiz
+                    displayResults(userProfiles.get(username));
+                    cardLayout.show(mainPanel, "results");
+                } else {
+                    // User needs to take the quiz
+                    cardLayout.show(mainPanel, "quizIntro");
+                }
+            } else {
+                JOptionPane.showMessageDialog(frame, "Invalid username or password", "Login Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        
+        signupButton.addActionListener(e -> {
+            cardLayout.show(mainPanel, "signup");
+        });
+        
+        mainPanel.add(loginPanel, "login");
+    }
+    
+    private void createSignupPanel() {
+        JPanel signupPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        
+        JLabel titleLabel = new JLabel("Sign Up");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(20, 5, 30, 5);
+        signupPanel.add(titleLabel, gbc);
+        
+        JLabel usernameLabel = new JLabel("Username:");
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        gbc.anchor = GridBagConstraints.EAST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        signupPanel.add(usernameLabel, gbc);
+        
+        JTextField usernameField = new JTextField(20);
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.anchor = GridBagConstraints.WEST;
+        signupPanel.add(usernameField, gbc);
+        
+        JLabel passwordLabel = new JLabel("Password:");
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.EAST;
+        signupPanel.add(passwordLabel, gbc);
+        
+        JPasswordField passwordField = new JPasswordField(20);
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        signupPanel.add(passwordField, gbc);
+        
+        JLabel confirmPasswordLabel = new JLabel("Confirm Password:");
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.anchor = GridBagConstraints.EAST;
+        signupPanel.add(confirmPasswordLabel, gbc);
+        
+        JPasswordField confirmPasswordField = new JPasswordField(20);
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        gbc.anchor = GridBagConstraints.WEST;
+        signupPanel.add(confirmPasswordField, gbc);
+        
+        JButton signupButton = new JButton("Create Account");
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(20, 5, 5, 5);
+        signupPanel.add(signupButton, gbc);
+        
+        JButton backButton = new JButton("Back to Login");
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        signupPanel.add(backButton, gbc);
+        
+        // Add action listeners
+        signupButton.addActionListener(e -> {
+            String username = usernameField.getText();
+            String password = new String(passwordField.getPassword());
+            String confirmPassword = new String(confirmPasswordField.getPassword());
+            
+            if (username.isEmpty() || password.isEmpty()) {
+                JOptionPane.showMessageDialog(frame, "Username and password cannot be empty", "Signup Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            if (!password.equals(confirmPassword)) {
+                JOptionPane.showMessageDialog(frame, "Passwords do not match", "Signup Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            if (userCredentials.containsKey(username)) {
+                JOptionPane.showMessageDialog(frame, "Username already exists", "Signup Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Add new user
+            userCredentials.put(username, password);
+            saveUserData();
+            
+            JOptionPane.showMessageDialog(frame, "Account created successfully", "Signup Success", JOptionPane.INFORMATION_MESSAGE);
+            cardLayout.show(mainPanel, "login");
+        });
+        
+        backButton.addActionListener(e -> {
+            cardLayout.show(mainPanel, "login");
+        });
+        
+        mainPanel.add(signupPanel, "signup");
+    }
+    
+    private void createQuizIntroPanel() {
+        JPanel quizIntroPanel = new JPanel(new BorderLayout(20, 20));
+        quizIntroPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        
+        JLabel titleLabel = new JLabel("Big 5 Personality Assessment");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setHorizontalAlignment(JLabel.CENTER);
+        quizIntroPanel.add(titleLabel, BorderLayout.NORTH);
+        
+        JTextArea introText = new JTextArea(
+            "Welcome to the Big 5 Personality Assessment!\n\n" +
+            "This quiz will help identify your personality traits based on the Big 5 model:\n" +
+            "• Openness to Experience\n" +
+            "• Conscientiousness\n" +
+            "• Extraversion\n" +
+            "• Agreeableness\n" +
+            "• Neuroticism\n\n" +
+            "Based on your results, we'll recommend personalized learning paths that align with your personality traits.\n\n" +
+            "The quiz consists of 15 questions. For each statement, indicate how accurately it describes you on a scale from 1 (Strongly Disagree) to 5 (Strongly Agree).\n\n" +
+            "Click 'Start Quiz' when you're ready to begin."
+        );
+        introText.setEditable(false);
+        introText.setLineWrap(true);
+        introText.setWrapStyleWord(true);
+        introText.setFont(new Font("Arial", Font.PLAIN, 16));
+        introText.setBackground(quizIntroPanel.getBackground());
+        JScrollPane scrollPane = new JScrollPane(introText);
+        quizIntroPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        JButton startButton = new JButton("Start Quiz");
+        startButton.setFont(new Font("Arial", Font.BOLD, 16));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.add(startButton);
+        quizIntroPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        startButton.addActionListener(e -> {
+            // Reset quiz state
+            currentQuestionIndex = 0;
+            answers = new int[questions.size()];
+            updateQuizPanel();
+            cardLayout.show(mainPanel, "quiz");
+        });
+        
+        mainPanel.add(quizIntroPanel, "quizIntro");
+    }
+    
+    private void createQuizPanel() {
+        JPanel quizPanel = new JPanel(new BorderLayout(20, 20));
+        quizPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        
+        // This panel will be dynamically updated for each question
+        mainPanel.add(quizPanel, "quiz");
+    }
+    
+    private void updateQuizPanel() {
+        JPanel quizPanel = (JPanel) ((CardLayout) mainPanel.getLayout()).findComponentById(mainPanel, "quiz");
+        quizPanel.removeAll();
+        
+        Question currentQuestion = questions.get(currentQuestionIndex);
+        
+        JLabel progressLabel = new JLabel("Question " + (currentQuestionIndex + 1) + " of " + questions.size());
+        progressLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        progressLabel.setHorizontalAlignment(JLabel.CENTER);
+        quizPanel.add(progressLabel, BorderLayout.NORTH);
+        
+        JPanel questionPanel = new JPanel(new BorderLayout(10, 20));
+        JLabel questionLabel = new JLabel(currentQuestion.getText());
+        questionLabel.setFont(new Font("Arial", Font.PLAIN, 18));
+        questionPanel.add(questionLabel, BorderLayout.NORTH);
+        
+        JPanel optionsPanel = new JPanel(new GridLayout(5, 1, 5, 10));
+        ButtonGroup buttonGroup = new ButtonGroup();
+        
+        String[] options = {
+            "1 - Strongly Disagree",
+            "2 - Disagree",
+            "3 - Neutral",
+            "4 - Agree",
+            "5 - Strongly Agree"
+        };
+        
+        JRadioButton[] radioButtons = new JRadioButton[5];
+        for (int i = 0; i < 5; i++) {
+            radioButtons[i] = new JRadioButton(options[i]);
+            radioButtons[i].setFont(new Font("Arial", Font.PLAIN, 16));
+            final int value = i + 1;
+            radioButtons[i].addActionListener(e -> answers[currentQuestionIndex] = value);
+            buttonGroup.add(radioButtons[i]);
+            optionsPanel.add(radioButtons[i]);
+        }
+        
+        // If this question has been answered before, select the appropriate radio button
+        if (answers[currentQuestionIndex] > 0) {
+            radioButtons[answers[currentQuestionIndex] - 1].setSelected(true);
+        }
+        
+        questionPanel.add(optionsPanel, BorderLayout.CENTER);
+        quizPanel.add(questionPanel, BorderLayout.CENTER);
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        
+        JButton prevButton = new JButton("Previous");
+        prevButton.setFont(new Font("Arial", Font.BOLD, 16));
+        prevButton.setEnabled(currentQuestionIndex > 0);
+        prevButton.addActionListener(e -> {
+            currentQuestionIndex--;
+            updateQuizPanel();
+        });
+        
+        JButton nextButton = new JButton(currentQuestionIndex == questions.size() - 1 ? "Finish" : "Next");
+        nextButton.setFont(new Font("Arial", Font.BOLD, 16));
+        nextButton.addActionListener(e -> {
+            if (answers[currentQuestionIndex] == 0) {
+                JOptionPane.showMessageDialog(frame, "Please select an answer before continuing", "Warning", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
+            if (currentQuestionIndex == questions.size() - 1) {
+                // Last question, calculate results
+                PersonalityProfile profile = calculatePersonalityProfile();
+                userProfiles.put(currentUser, profile);
+                saveUserData();
+                displayResults(profile);
+                cardLayout.show(mainPanel, "results");
+            } else {
+                // Move to next question
+                currentQuestionIndex++;
+                updateQuizPanel();
+            }
+        });
+        
+        buttonPanel.add(prevButton);
+        buttonPanel.add(nextButton);
+        quizPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        quizPanel.revalidate();
+        quizPanel.repaint();
+    }
+    
+    private void createResultsPanel() {
+        JPanel resultsPanel = new JPanel(new BorderLayout(20, 20));
+        resultsPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        
+        // This panel will be dynamically updated with results
+        mainPanel.add(resultsPanel, "results");
+    }
+    
+    private void displayResults(PersonalityProfile profile) {
+        JPanel resultsPanel = (JPanel) ((Object) mainPanel.getLayout()).findComponentById(mainPanel, "results");
+        resultsPanel.removeAll();
+        
+        JLabel titleLabel = new JLabel("Your Personality Profile");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setHorizontalAlignment(JLabel.CENTER);
+        resultsPanel.add(titleLabel, BorderLayout.NORTH);
+        
+        JPanel contentPanel = new JPanel(new BorderLayout(20, 20));
+        
+        // Create traits panel
+        JPanel traitsPanel = new JPanel(new GridLayout(5, 1, 10, 10));
+        traitsPanel.setBorder(BorderFactory.createTitledBorder("Big 5 Personality Traits"));
+        
+        // Add trait bars
+        addTraitBar(traitsPanel, "Openness", profile.getOpenness());
+        addTraitBar(traitsPanel, "Conscientiousness", profile.getConscientiousness());
+        addTraitBar(traitsPanel, "Extraversion", profile.getExtraversion());
+        addTraitBar(traitsPanel, "Agreeableness", profile.getAgreeableness());
+        addTraitBar(traitsPanel, "Neuroticism", profile.getNeuroticism());
+        
+        contentPanel.add(traitsPanel, BorderLayout.NORTH);
+        
+        // Create learning path panel
+        JPanel learningPathPanel = new JPanel(new BorderLayout(10, 10));
+        learningPathPanel.setBorder(BorderFactory.createTitledBorder("Personalized Learning Path"));
+        
+        JTextArea learningPathText = new JTextArea();
+        learningPathText.setEditable(false);
+        learningPathText.setLineWrap(true);
+        learningPathText.setWrapStyleWord(true);
+        learningPathText.setFont(new Font("Arial", Font.PLAIN, 14));
+        
+        // Generate learning path recommendations based on personality profile
+        String learningPathRecommendation = generateLearningPathRecommendation(profile);
+        learningPathText.setText(learningPathRecommendation);
+        
+        JScrollPane scrollPane = new JScrollPane(learningPathText);
+        learningPathPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        contentPanel.add(learningPathPanel, BorderLayout.CENTER);
+        
+        resultsPanel.add(contentPanel, BorderLayout.CENTER);
+        
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.setFont(new Font("Arial", Font.BOLD, 16));
+        logoutButton.addActionListener(e -> {
+            currentUser = null;
+            cardLayout.show(mainPanel, "login");
+        });
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.add(logoutButton);
+        resultsPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        resultsPanel.revalidate();
+        resultsPanel.repaint();
+    }
+    
+    private void addTraitBar(JPanel panel, String traitName, int value) {
+        JPanel traitPanel = new JPanel(new BorderLayout(10, 0));
+        JLabel nameLabel = new JLabel(traitName);
+        nameLabel.setPreferredSize(new Dimension(150, 20));
+        traitPanel.add(nameLabel, BorderLayout.WEST);
+        
+        JProgressBar progressBar = new JProgressBar(0, 100);
+        progressBar.setValue(value);
+        progressBar.setStringPainted(true);
+        progressBar.setString(value + "%");
+        
+        // Set color based on value
+        if (value < 30) {
+            progressBar.setForeground(new Color(255, 102, 102)); // Light red
+        } else if (value < 70) {
+            progressBar.setForeground(new Color(255, 204, 0)); // Yellow
+        } else {
+            progressBar.setForeground(new Color(102, 204, 0)); // Green
+        }
+        
+        traitPanel.add(progressBar, BorderLayout.CENTER);
+        panel.add(traitPanel);
+    }
+    
+    private boolean authenticateUser(String username, String password) {
+        return userCredentials.containsKey(username) && userCredentials.get(username).equals(password);
+    }
+    
+    private void initializeQuestions() {
+        questions = new ArrayList<>();
+        
+        // Openness questions
+        questions.add(new Question("I have a vivid imagination.", PersonalityTrait.OPENNESS));
+        questions.add(new Question("I am interested in abstract ideas.", PersonalityTrait.OPENNESS));
+        questions.add(new Question("I enjoy trying new activities and experiences.", PersonalityTrait.OPENNESS));
+        
+        // Conscientiousness questions
+        questions.add(new Question("I am always prepared.", PersonalityTrait.CONSCIENTIOUSNESS));
+        questions.add(new Question("I pay attention to details.", PersonalityTrait.CONSCIENTIOUSNESS));
+        questions.add(new Question("I like to follow a schedule.", PersonalityTrait.CONSCIENTIOUSNESS));
+        
+        // Extraversion questions
+        questions.add(new Question("I feel comfortable around people.", PersonalityTrait.EXTRAVERSION));
+        questions.add(new Question("I start conversations with strangers easily.", PersonalityTrait.EXTRAVERSION));
+        questions.add(new Question("I enjoy being the center of attention.", PersonalityTrait.EXTRAVERSION));
+        
+        // Agreeableness questions
+        questions.add(new Question("I am interested in other people's problems.", PersonalityTrait.AGREEABLENESS));
+        questions.add(new Question("I sympathize with others' feelings.", PersonalityTrait.AGREEABLENESS));
+        questions.add(new Question("I make people feel at ease.", PersonalityTrait.AGREEABLENESS));
+        
+        // Neuroticism questions
+        questions.add(new Question("I get stressed out easily.", PersonalityTrait.NEUROTICISM));
+        questions.add(new Question("I worry about things.", PersonalityTrait.NEUROTICISM));
+        questions.add(new Question("I am easily disturbed by events.", PersonalityTrait.NEUROTICISM));
+    }
+    
+    private PersonalityProfile calculatePersonalityProfile() {
+        int opennessSum = 0;
+        int conscientiousnessSum = 0;
+        int extraversionSum = 0;
+        int agreeablenessSum = 0;
+        int neuroticismSum = 0;
+        
+        int opennessCount = 0;
+        int conscientiousnessCount = 0;
+        int extraversionCount = 0;
+        int agreeablenessCount = 0;
+        int neuroticismCount = 0;
+        
+        for (int i = 0; i < questions.size(); i++) {
+            Question question = questions.get(i);
+            int answer = answers[i];
+            
+            switch (question.getTrait()) {
+                case OPENNESS:
+                    opennessSum += answer;
+                    opennessCount++;
+                    break;
+                case CONSCIENTIOUSNESS:
+                    conscientiousnessSum += answer;
+                    conscientiousnessCount++;
+                    break;
+                case EXTRAVERSION:
+                    extraversionSum += answer;
+                    extraversionCount++;
+                    break;
+                case AGREEABLENESS:
+                    agreeablenessSum += answer;
+                    agreeablenessCount++;
+                    break;
+                case NEUROTICISM:
+                    neuroticismSum += answer;
+                    neuroticismCount++;
+                    break;
+            }
+        }
+        
+        // Calculate percentages (1-5 scale converted to 0-100%)
+        int openness = (int) ((opennessSum / (double) (opennessCount * 5)) * 100);
+        int conscientiousness = (int) ((conscientiousnessSum / (double) (conscientiousnessCount * 5)) * 100);
+        int extraversion = (int) ((extraversionSum / (double) (extraversionCount * 5)) * 100);
+        int agreeableness = (int) ((agreeablenessSum / (double) (agreeablenessCount * 5)) * 100);
+        int neuroticism = (int) ((neuroticismSum / (double) (neuroticismCount * 5)) * 100);
+        
+        return new PersonalityProfile(openness, conscientiousness, extraversion, agreeableness, neuroticism);
+    }
+    
+    private String generateLearningPathRecommendation(PersonalityProfile profile) {
+        StringBuilder sb = new StringBuilder();
+        
+        // Overall personality type
+        sb.append("Your Personality Overview:\n\n");
+        
+        // Determine dominant traits (traits with scores > 70%)
+        List<String> dominantTraits = new ArrayList<>();
+        if (profile.getOpenness() > 70) dominantTraits.add("Openness to Experience");
+        if (profile.getConscientiousness() > 70) dominantTraits.add("Conscientiousness");
+        if (profile.getExtraversion() > 70) dominantTraits.add("Extraversion");
+        if (profile.getAgreeableness() > 70) dominantTraits.add("Agreeableness");
+        if (profile.getNeuroticism() > 70) dominantTraits.add("Neuroticism");
+        
+        if (!dominantTraits.isEmpty()) {
+            sb.append("Your dominant traits are: ").append(String.join(", ", dominantTraits)).append(".\n\n");
+        } else {
+            sb.append("You have a balanced personality profile without strongly dominant traits.\n\n");
+        }
+        
+        // Learning style recommendations based on traits
+        sb.append("Recommended Learning Approaches:\n\n");
+        
+        // Openness recommendations
+        sb.append("Openness to Experience (").append(profile.getOpenness()).append("%):\n");
+        if (profile.getOpenness() > 70) {
+            sb.append("• You thrive with creative, conceptual learning approaches\n");
+            sb.append("• Explore interdisciplinary subjects and connect diverse ideas\n");
+            sb.append("• Consider project-based learning with room for innovation\n");
+        } else if (profile.getOpenness() < 30) {
+            sb.append("• You may prefer practical, concrete learning materials\n");
+            sb.append("• Focus on established methods and clear instructions\n");
+            sb.append("• Consider structured learning paths with clear objectives\n");
+        } else {
+            sb.append("• Balance theoretical concepts with practical applications\n");
+            sb.append("• Mix established methods with some creative exploration\n");
+        }
+        sb.append("\n");
+        
+        // Conscientiousness recommendations
+        sb.append("Conscientiousness (").append(profile.getConscientiousness()).append("%):\n");
+        if (profile.getConscientiousness() > 70) {
+            sb.append("• Create detailed study schedules and stick to them\n");
+            sb.append("• Use systematic approaches with clear milestones\n");
+            sb.append("• Set specific goals and track your progress\n");
+        } else if (profile.getConscientiousness() < 30) {
+            sb.append("• Use external accountability systems or study groups\n");
+            sb.append("• Break learning into smaller, manageable chunks\n");
+            sb.append("• Consider gamified learning to maintain motivation\n");
+        } else {
+            sb.append("• Balance structured learning with flexibility\n");
+            sb.append("• Set moderate goals with some room for adjustment\n");
+        }
+        sb.append("\n");
+        
+        // Extraversion recommendations
+        sb.append("Extraversion (").append(profile.getExtraversion()).append("%):\n");
+        if (profile.getExtraversion() > 70) {
+            sb.append("• Engage in group learning and discussion-based classes\n");
+            sb.append("• Consider teaching concepts to others to reinforce learning\n");
+            sb.append("• Join study groups or collaborative learning environments\n");
+        } else if (profile.getExtraversion() < 30) {
+            sb.append("• Focus on independent study with self-paced materials\n");
+            sb.append("• Consider online courses with minimal group interaction\n");
+            sb.append("• Create a quiet, distraction-free learning environment\n");
+        } else {
+            sb.append("• Balance individual study with occasional group work\n");
+            sb.append("• Mix self-paced learning with discussion-based activities\n");
+        }
+        sb.append("\n");
+        
+        // Agreeableness recommendations
+        sb.append("Agreeableness (").append(profile.getAgreeableness()).append("%):\n");
+        if (profile.getAgreeableness() > 70) {
+            sb.append("• Seek cooperative learning environments\n");
+            sb.append("• Consider service-learning or helping others understand concepts\n");
+            sb.append("• Look for mentorship opportunities\n");
+        } else if (profile.getAgreeableness() < 30) {
+            sb.append("• Focus on independent, self-directed learning\n");
+            sb.append("• Consider competitive learning environments\n");
+            sb.append("• Develop skills in constructive criticism and debate\n");
+        } else {
+            sb.append("• Balance cooperative and independent learning\n");
+            sb.append("• Mix collaborative projects with individual assignments\n");
+            sb.append("• Practice both giving and receiving feedback\n");
+        }
+        sb.append("\n");
+        
+        // Neuroticism recommendations
+        sb.append("Neuroticism (").append(profile.getNeuroticism()).append("%):\n");
+        if (profile.getNeuroticism() > 70) {
+            sb.append("• Incorporate stress management techniques into your study routine\n");
+            sb.append("• Break learning into smaller, manageable goals to reduce anxiety\n");
+            sb.append("• Consider mindfulness practices before challenging learning sessions\n");
+        } else if (profile.getNeuroticism() < 30) {
+            sb.append("• Challenge yourself with ambitious learning goals\n");
+            sb.append("• Consider fast-paced learning environments\n");
+            sb.append("• Take on leadership roles in group learning settings\n");
+        } else {
+            sb.append("• Balance challenging material with adequate preparation\n");
+            sb.append("• Practice basic stress management for difficult topics\n");
+        }
+        sb.append("\n");
+        
+        // Specific learning path recommendations
+        sb.append("Recommended Learning Paths:\n\n");
+        
+        // Determine primary learning style based on trait combinations
+        if (profile.getOpenness() > 60 && profile.getExtraversion() > 60) {
+            sb.append("Interactive & Creative Learning:\n");
+            sb.append("• Discussion-based courses with creative components\n");
+            sb.append("• Collaborative projects with room for innovation\n");
+            sb.append("• Workshops and interactive seminars\n");
+        } else if (profile.getOpenness() > 60 && profile.getExtraversion() <= 50) {
+            sb.append("Independent Creative Learning:\n");
+            sb.append("• Self-paced courses with creative assignments\n");
+            sb.append("• Research-based learning with conceptual exploration\n");
+            sb.append("• Arts and design-focused independent study\n");
+        } else if (profile.getConscientiousness() > 60 && profile.getOpenness() <= 50) {
+            sb.append("Structured Practical Learning:\n");
+            sb.append("• Well-organized courses with clear objectives\n");
+            sb.append("• Step-by-step tutorials and practical exercises\n");
+            sb.append("• Certification programs with defined milestones\n");
+        } else if (profile.getConscientiousness() > 60 && profile.getOpenness() > 60) {
+            sb.append("Systematic Innovative Learning:\n");
+            sb.append("• Project-based learning with clear guidelines but room for creativity\n");
+            sb.append("• Research methodologies and experimental design\n");
+            sb.append("• Structured courses that encourage critical thinking\n");
+        } else if (profile.getExtraversion() > 60 && profile.getAgreeableness() > 60) {
+            sb.append("Collaborative & Supportive Learning:\n");
+            sb.append("• Team-based learning environments\n");
+            sb.append("• Peer teaching and mentoring programs\n");
+            sb.append("• Community service learning projects\n");
+        } else {
+            sb.append("Balanced Learning Approach:\n");
+            sb.append("• Mix of individual and group activities\n");
+            sb.append("• Combination of structured content and creative exploration\n");
+            sb.append("• Varied learning formats (reading, discussion, practice)\n");
+        }
+        
+        return sb.toString();
+    }
+    
+    private void loadUserData() {
+        try {
+            File credentialsFile = new File("user_credentials.dat");
+            File profilesFile = new File("user_profiles.dat");
+            
+            if (credentialsFile.exists()) {
+                try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(credentialsFile))) {
+                    userCredentials = (Map<String, String>) ois.readObject();
+                }
+            }
+            
+            if (profilesFile.exists()) {
+                try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(profilesFile))) {
+                    userProfiles = (Map<String, PersonalityProfile>) ois.readObject();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // If loading fails, start with empty maps
+            userCredentials = new HashMap<>();
+            userProfiles = new HashMap<>();
+        }
+    }
+    
+    private void saveUserData() {
+        try {
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("user_credentials.dat"))) {
+                oos.writeObject(userCredentials);
+            }
+            
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("user_profiles.dat"))) {
+                oos.writeObject(userProfiles);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(frame, "Error saving user data", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    // Inner classes
+    
+    private enum PersonalityTrait {
+        OPENNESS,
+        CONSCIENTIOUSNESS,
+        EXTRAVERSION,
+        AGREEABLENESS,
+        NEUROTICISM
+    }
+    
+    private static class Question implements Serializable {
+        private String text;
+        private PersonalityTrait trait;
+        
+        public Question(String text, PersonalityTrait trait) {
+            this.text = text;
+            this.trait = trait;
+        }
+        
+        public String getText() {
+            return text;
+        }
+        
+        public PersonalityTrait getTrait() {
+            return trait;
+        }
+    }
+    
+    private static class PersonalityProfile implements Serializable {
+        private int openness;
+        private int conscientiousness;
+        private int extraversion;
+        private int agreeableness;
+        private int neuroticism;
+        
+        public PersonalityProfile(int openness, int conscientiousness, int extraversion, int agreeableness, int neuroticism) {
+            this.openness = openness;
+            this.conscientiousness = conscientiousness;
+            this.extraversion = extraversion;
+            this.agreeableness = agreeableness;
+            this.neuroticism = neuroticism;
+        }
+        
+        public int getOpenness() {
+            return openness;
+        }
+        
+        public int getConscientiousness() {
+            return conscientiousness;
+        }
+        
+        public int getExtraversion() {
+            return extraversion;
+        }
+        
+        public int getAgreeableness() {
+            return agreeableness;
+        }
+        
+        public int getNeuroticism() {
+            return neuroticism;
+        }
+    }
+}
+
