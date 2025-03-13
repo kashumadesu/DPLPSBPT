@@ -110,7 +110,7 @@ public class ProfileManager {
         JButton backButton = new JButton("Back to Dashboard");
         backButton.setFont(new Font("Arial", Font.BOLD, 14));
         backButton.setBackground(PersonalityQuizApp.PRIMARY_COLOR);
-        backButton.setForeground(Color.WHITE);
+        backButton.setForeground(Color.BLACK);
         backButton.setFocusPainted(false);
         backButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
         backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -125,9 +125,9 @@ public class ProfileManager {
         // Create tabbed pane for profile sections
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setBackground(PersonalityQuizApp.MEDIUM_BG_COLOR);
-        tabbedPane.setForeground(PersonalityQuizApp.TEXT_COLOR);
+        tabbedPane.setForeground(Color.BLACK);
         tabbedPane.setFont(new Font("Arial", Font.BOLD, 14));
-        
+
         // User details panel
         JPanel userDetailsPanel = new JPanel(new BorderLayout(20, 20));
         userDetailsPanel.setBackground(PersonalityQuizApp.MEDIUM_BG_COLOR);
@@ -164,7 +164,7 @@ public class ProfileManager {
         JButton changePasswordButton = new JButton("Change Password");
         changePasswordButton.setFont(new Font("Arial", Font.BOLD, 14));
         changePasswordButton.setBackground(PersonalityQuizApp.PRIMARY_COLOR);
-        changePasswordButton.setForeground(Color.WHITE);
+        changePasswordButton.setForeground(Color.BLACK);
         changePasswordButton.setFocusPainted(false);
         changePasswordButton.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         changePasswordButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -209,7 +209,7 @@ public class ProfileManager {
             JButton takeQuizButton = new JButton("Take a Quiz Now");
             takeQuizButton.setFont(new Font("Arial", Font.BOLD, 14));
             takeQuizButton.setBackground(PersonalityQuizApp.PRIMARY_COLOR);
-            takeQuizButton.setForeground(Color.WHITE);
+            takeQuizButton.setForeground(Color.BLACK);
             takeQuizButton.setFocusPainted(false);
             takeQuizButton.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
             takeQuizButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -367,7 +367,7 @@ public class ProfileManager {
         JButton viewFullButton = new JButton("View Full Recommendation");
         viewFullButton.setFont(new Font("Arial", Font.BOLD, 14));
         viewFullButton.setBackground(PersonalityQuizApp.PRIMARY_COLOR);
-        viewFullButton.setForeground(Color.WHITE);
+        viewFullButton.setForeground(Color.BLACK);
         viewFullButton.setFocusPainted(false);
         viewFullButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
         viewFullButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
