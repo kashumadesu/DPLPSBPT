@@ -198,7 +198,7 @@ public class ResultsManager {
         JButton homeButton = new JButton("Back to Dashboard");
         homeButton.setFont(new Font("Arial", Font.BOLD, 14));
         homeButton.setBackground(PersonalityQuizApp.PRIMARY_COLOR);
-        homeButton.setForeground(Color.WHITE);
+        homeButton.setForeground(Color.BLACK);
         homeButton.setFocusPainted(false);
         homeButton.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         homeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -206,7 +206,7 @@ public class ResultsManager {
         JButton profileButton = new JButton("View All Results");
         profileButton.setFont(new Font("Arial", Font.BOLD, 14));
         profileButton.setBackground(PersonalityQuizApp.ACCENT_COLOR);
-        profileButton.setForeground(Color.WHITE);
+        profileButton.setForeground(Color.BLACK);
         profileButton.setFocusPainted(false);
         profileButton.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         profileButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -588,7 +588,7 @@ public class ResultsManager {
         JButton closeButton = new JButton("Close");
         closeButton.setFont(new Font("Arial", Font.BOLD, 14));
         closeButton.setBackground(PersonalityQuizApp.PRIMARY_COLOR);
-        closeButton.setForeground(Color.WHITE);
+        closeButton.setForeground(Color.BLACK);
         closeButton.setFocusPainted(false);
         closeButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
         closeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
