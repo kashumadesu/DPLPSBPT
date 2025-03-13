@@ -84,7 +84,7 @@ public class QuizManager {
         
         JButton backButton = new JButton("Back to Dashboard");
         backButton.setFont(new Font("Arial", Font.BOLD, 14));
-        backButton.setForeground(Color.WHITE);
+        backButton.setForeground(Color.BLACK);
         backButton.setBorderPainted(false);
         backButton.setContentAreaFilled(false);
         backButton.setFocusPainted(false);
@@ -180,7 +180,7 @@ public class QuizManager {
         JButton startButton = new JButton("Start Assessment");
         startButton.setFont(new Font("Arial", Font.BOLD, 16));
         startButton.setBackground(PersonalityQuizApp.PRIMARY_COLOR);
-        startButton.setForeground(Color.WHITE);
+        startButton.setForeground(Color.BLACK);
         startButton.setFocusPainted(false);
         startButton.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
         startButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -312,53 +312,101 @@ public class QuizManager {
         
         contentPanel.add(questionPanel, BorderLayout.NORTH);
         
-        // Create options panel with horizontal radio buttons (16personalities style)
+        // Create options panel with horizontal radio buttons 
         JPanel optionsPanel = new JPanel(new BorderLayout(0, 15));
         optionsPanel.setBackground(PersonalityQuizApp.MEDIUM_BG_COLOR);
         
-        // Labels for the scale
-        JPanel scaleLabelsPanel = new JPanel(new GridLayout(1, 5));
-        scaleLabelsPanel.setBackground(PersonalityQuizApp.MEDIUM_BG_COLOR);
-        
-        String[] scaleLabels = {
-            "Strongly Disagree",
-            "Disagree",
-            "Neutral",
-            "Agree",
-            "Strongly Agree"
-        };
-        
-        for (String label : scaleLabels) {
-            JLabel scaleLabel = new JLabel(label);
-            scaleLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-            scaleLabel.setForeground(PersonalityQuizApp.SECONDARY_TEXT_COLOR);
-            scaleLabel.setHorizontalAlignment(JLabel.CENTER);
-            scaleLabelsPanel.add(scaleLabel);
-        }
-        
-        // Radio buttons in a row
-        JPanel radioPanel = new JPanel(new GridLayout(1, 5));
+        // Radio buttons in a row with labels on sides
+        JPanel radioPanel = new JPanel(new GridLayout(1, 7));
         radioPanel.setBackground(PersonalityQuizApp.MEDIUM_BG_COLOR);
         ButtonGroup buttonGroup = new ButtonGroup();
-        
+
+        // Custom radio button colors
+        Color agreeColor = new Color(34, 197, 94);    // Green
+        Color neutralColor = new Color(156, 163, 175); // Gray
+        Color disagreeColor = new Color(168, 85, 247); // Purple
+
+        // Add "Agree" label on the left
+        JLabel agreeLabel = new JLabel("Agree");
+        agreeLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        agreeLabel.setForeground(agreeColor);
+        agreeLabel.setHorizontalAlignment(JLabel.CENTER);
+        radioPanel.add(agreeLabel);
+
         JRadioButton[] radioButtons = new JRadioButton[5];
         for (int i = 0; i < 5; i++) {
-            radioButtons[i] = new JRadioButton();
+            final int buttonIndex = i;
+            radioButtons[i] = new JRadioButton() {
+                /**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+
+				@Override
+                protected void paintComponent(Graphics g) {
+                    super.paintComponent(g);
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    
+                    int size = 60;
+                    int x = (getWidth() - size) / 2;
+                    int y = (getHeight() - size) / 2;
+                    
+                    // Determine color based on position
+                    Color buttonColor;
+                    if (buttonIndex < 2) {
+                        buttonColor = agreeColor;
+                    } else if (buttonIndex == 2) {
+                        buttonColor = neutralColor;
+                    } else {
+                        buttonColor = disagreeColor;
+                    }
+                    
+                    // Draw circle
+                    g2d.setColor(buttonColor);
+                    g2d.setStroke(new BasicStroke(2));
+                    g2d.drawOval(x, y, size, size);
+                    
+                    // Fill circle if selected
+                    if (getModel().isSelected()) {
+                        g2d.setColor(buttonColor);
+                        g2d.fillOval(x + 4, y + 4, size - 8, size - 8);
+                    }
+                    
+                    g2d.dispose();
+                }
+                
+                @Override
+                public Dimension getPreferredSize() {
+                    return new Dimension(40, 40);
+                }
+            };
+            
             radioButtons[i].setBackground(PersonalityQuizApp.MEDIUM_BG_COLOR);
             radioButtons[i].setHorizontalAlignment(JLabel.CENTER);
-            final int value = i + 1;
+            radioButtons[i].setBorderPainted(false);
+            radioButtons[i].setFocusPainted(false);
+            radioButtons[i].setContentAreaFilled(false);
+            
+            final int value = 5 - i; // Reverse the values (5,4,3,2,1)
             radioButtons[i].addActionListener(_ -> answers[currentQuestionIndex] = value);
             buttonGroup.add(radioButtons[i]);
             radioPanel.add(radioButtons[i]);
         }
-        
+
+        // Add "Disagree" label on the right
+        JLabel disagreeLabel = new JLabel("Disagree");
+        disagreeLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        disagreeLabel.setForeground(disagreeColor);
+        disagreeLabel.setHorizontalAlignment(JLabel.CENTER);
+        radioPanel.add(disagreeLabel);
+
         // If this question has been answered before, select the appropriate radio button
         if (answers[currentQuestionIndex] > 0) {
-            radioButtons[answers[currentQuestionIndex] - 1].setSelected(true);
+            radioButtons[5 - answers[currentQuestionIndex]].setSelected(true);
         }
         
         optionsPanel.add(radioPanel, BorderLayout.CENTER);
-        optionsPanel.add(scaleLabelsPanel, BorderLayout.SOUTH);
         
         contentPanel.add(optionsPanel, BorderLayout.CENTER);
         
@@ -378,7 +426,7 @@ public class QuizManager {
         JButton prevButton = new JButton("Previous");
         prevButton.setFont(new Font("Arial", Font.BOLD, 14));
         prevButton.setBackground(new Color(100, 100, 120));
-        prevButton.setForeground(Color.WHITE);
+        prevButton.setForeground(Color.BLACK);
         prevButton.setFocusPainted(false);
         prevButton.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         prevButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -387,7 +435,7 @@ public class QuizManager {
         JButton nextButton = new JButton(currentQuestionIndex == questions.size() - 1 ? "Finish" : "Next");
         nextButton.setFont(new Font("Arial", Font.BOLD, 14));
         nextButton.setBackground(PersonalityQuizApp.PRIMARY_COLOR);
-        nextButton.setForeground(Color.WHITE);
+        nextButton.setForeground(Color.BLACK);
         nextButton.setFocusPainted(false);
         nextButton.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         nextButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
