@@ -2,8 +2,6 @@ package bigpersonality;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.*;
-import java.util.*;
 import java.util.List;
 
 public class PersonalityQuizApp {
@@ -14,9 +12,8 @@ public class PersonalityQuizApp {
     private CardLayout cardLayout;
     private JPanel mainPanel;
     
-    // User data storage
-    private Map<String, UserData> userData = new HashMap<>();
-    private Map<String, List<PersonalityProfile>> userProfiles = new HashMap<>();
+    // Database manager
+    private DatabaseManager dbManager;
     
     // Current user
     private String currentUser = null;
@@ -61,8 +58,16 @@ public class PersonalityQuizApp {
     }
     
     public void initialize() {
-        // Load user data
-        loadUserData();
+        // Initialize database
+        dbManager = new DatabaseManager();
+        try {
+            dbManager.initializeDatabase();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, 
+                "Error connecting to database. Please make sure MySQL is running.\n" + e.getMessage(), 
+                "Database Error", JOptionPane.ERROR_MESSAGE);
+            System.exit(1);
+        }
         
         // Create main frame
         frame = new JFrame("Personality-Based Learning Path System");
@@ -97,15 +102,20 @@ public class PersonalityQuizApp {
         
         // Show the frame
         frame.setVisible(true);
+        
+        // Add shutdown hook to close database connection
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            dbManager.disconnect();
+        }));
     }
     
     // User data management methods
     public UserData getCurrentUserData() {
-        return userData.get(currentUser);
+        return dbManager.getUserData(currentUser);
     }
     
     public List<PersonalityProfile> getCurrentUserProfiles() {
-        return userProfiles.get(currentUser);
+        return dbManager.getUserProfiles(currentUser);
     }
     
     public void setCurrentUser(String username) {
@@ -117,30 +127,23 @@ public class PersonalityQuizApp {
     }
     
     public void addUserProfile(PersonalityProfile profile) {
-        if (!userProfiles.containsKey(currentUser)) {
-            userProfiles.put(currentUser, new ArrayList<>());
-        }
-        userProfiles.get(currentUser).add(profile);
-        saveUserData();
+        dbManager.addProfile(currentUser, profile);
     }
     
     public boolean authenticateUser(String username, String password) {
-        return userData.containsKey(username) && userData.get(username).getPassword().equals(password);
+        return dbManager.authenticateUser(username, password);
     }
     
     public void createNewUser(UserData newUser) {
-        userData.put(newUser.getUsername(), newUser);
-        userProfiles.put(newUser.getUsername(), new ArrayList<>());
-        saveUserData();
+        dbManager.createUser(newUser);
     }
     
     public boolean userExists(String username) {
-        return userData.containsKey(username);
+        return dbManager.userExists(username);
     }
     
     public void updateUserPassword(String newPassword) {
-        userData.get(currentUser).setPassword(newPassword);
-        saveUserData();
+        dbManager.updateUserPassword(currentUser, newPassword);
     }
     
     // Manager getters
@@ -184,45 +187,5 @@ public class PersonalityQuizApp {
         }
         
         return null;
-    }
-    
-    @SuppressWarnings("unchecked")
-	private void loadUserData() {
-        try {
-            File userDataFile = new File("user_data.dat");
-            File profilesFile = new File("user_profiles.dat");
-            
-            if (userDataFile.exists()) {
-                try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(userDataFile))) {
-                    userData = (Map<String, UserData>) ois.readObject();
-                }
-            }
-            
-            if (profilesFile.exists()) {
-                try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(profilesFile))) {
-                    userProfiles = (Map<String, List<PersonalityProfile>>) ois.readObject();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            // If loading fails, start with empty maps
-            userData = new HashMap<>();
-            userProfiles = new HashMap<>();
-        }
-    }
-    
-    private void saveUserData() {
-        try {
-            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("user_data.dat"))) {
-                oos.writeObject(userData);
-            }
-            
-            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("user_profiles.dat"))) {
-                oos.writeObject(userProfiles);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(frame, "Error saving user data", "Error", JOptionPane.ERROR_MESSAGE);
-        }
     }
 }
