@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Rectangle2D;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -51,7 +52,6 @@ public class DashboardManager {
         sidebarPanel.setPreferredSize(new Dimension(250, 0));
         sidebarPanel.setBorder(BorderFactory.createEmptyBorder(20, 15, 20, 15));
         
-        // User info in sidebar
         JPanel userInfoPanel = new JPanel();
         userInfoPanel.setLayout(new BoxLayout(userInfoPanel, BoxLayout.Y_AXIS));
         userInfoPanel.setBackground(PersonalityQuizApp.MEDIUM_BG_COLOR);
@@ -78,7 +78,7 @@ public class DashboardManager {
                 // Draw initials
                 String initials = String.valueOf(user.getFirstName().charAt(0)) + 
                                  String.valueOf(user.getLastName().charAt(0));
-                g2d.setColor(Color.WHITE);
+                g2d.setColor(Color.WHITE); // Ensure white text on colored background
                 g2d.setFont(new Font("Arial", Font.BOLD, size / 2));
                 FontMetrics fm = g2d.getFontMetrics();
                 int textWidth = fm.stringWidth(initials);
@@ -100,12 +100,12 @@ public class DashboardManager {
         
         JLabel nameLabel = new JLabel(user.getFirstName() + " " + user.getLastName());
         nameLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        nameLabel.setForeground(PersonalityQuizApp.TEXT_COLOR);
+        nameLabel.setForeground(Color.WHITE); // Changed to white for better visibility
         nameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         JLabel usernameLabel = new JLabel("@" + user.getUsername());
         usernameLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        usernameLabel.setForeground(PersonalityQuizApp.SECONDARY_TEXT_COLOR);
+        usernameLabel.setForeground(new Color(220, 220, 220)); // Light gray for better visibility
         usernameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         userInfoPanel.add(avatarPanel);
@@ -120,12 +120,12 @@ public class DashboardManager {
         menuPanel.setBackground(PersonalityQuizApp.MEDIUM_BG_COLOR);
         menuPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
-        // Menu items
+        // Menu items with custom icons instead of emojis
         String[] menuItems = {"Dashboard", "Take Quiz", "Results", "Profile", "Settings"};
-        String[] menuIcons = {"🏠", "📝", "📊", "👤", "⚙️"};
+        int[] iconTypes = {0, 1, 2, 3, 4}; // 0=home, 1=quiz, 2=results, 3=profile, 4=settings
         
         for (int i = 0; i < menuItems.length; i++) {
-            JPanel menuItemPanel = createMenuItemPanel(menuIcons[i], menuItems[i], i == 0);
+            JPanel menuItemPanel = createMenuItemPanel(iconTypes[i], menuItems[i], i == 0);
             final int index = i;
             
             menuItemPanel.addMouseListener(new MouseAdapter() {
@@ -165,8 +165,8 @@ public class DashboardManager {
             menuPanel.add(Box.createVerticalStrut(5));
         }
         
-        // Sign out button
-        JPanel signOutPanel = createMenuItemPanel("🚪", "Sign Out", false);
+        // Sign out button with custom icon
+        JPanel signOutPanel = createMenuItemPanel(5, "Sign Out", false); // 5=signout
         signOutPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -196,13 +196,13 @@ public class DashboardManager {
         
         JLabel welcomeLabel = new JLabel("Welcome, " + user.getFirstName() + "!");
         welcomeLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        welcomeLabel.setForeground(PersonalityQuizApp.TEXT_COLOR);
+        welcomeLabel.setForeground(Color.WHITE); // Changed to white for better visibility
         headerPanel.add(welcomeLabel, BorderLayout.WEST);
         
         // Date display
         JLabel dateLabel = new JLabel(new SimpleDateFormat("EEEE, MMMM d, yyyy").format(new Date()));
         dateLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        dateLabel.setForeground(PersonalityQuizApp.SECONDARY_TEXT_COLOR);
+        dateLabel.setForeground(new Color(220, 220, 220)); // Light gray for better visibility
         headerPanel.add(dateLabel, BorderLayout.EAST);
         
         contentPanel.add(headerPanel, BorderLayout.NORTH);
@@ -257,7 +257,7 @@ public class DashboardManager {
             JButton viewDetailsButton = new JButton("View Full Results");
             viewDetailsButton.setFont(new Font("Arial", Font.BOLD, 12));
             viewDetailsButton.setBackground(PersonalityQuizApp.PRIMARY_COLOR);
-            viewDetailsButton.setForeground(Color.WHITE);
+            viewDetailsButton.setForeground(Color.BLACK); // Ensure black text on button
             viewDetailsButton.setFocusPainted(false);
             viewDetailsButton.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
             viewDetailsButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -281,14 +281,14 @@ public class DashboardManager {
             
             JLabel emptyLabel = new JLabel("Take a quiz to see your personality profile");
             emptyLabel.setFont(new Font("Arial", Font.ITALIC, 14));
-            emptyLabel.setForeground(PersonalityQuizApp.SECONDARY_TEXT_COLOR);
+            emptyLabel.setForeground(Color.WHITE); // Changed for better visibility
             emptyLabel.setHorizontalAlignment(JLabel.CENTER);
             emptyPanel.add(emptyLabel, BorderLayout.CENTER);
             
             JButton takeQuizButton = new JButton("Take Quiz Now");
             takeQuizButton.setFont(new Font("Arial", Font.BOLD, 12));
             takeQuizButton.setBackground(PersonalityQuizApp.PRIMARY_COLOR);
-            takeQuizButton.setForeground(Color.WHITE);
+            takeQuizButton.setForeground(Color.BLACK); // Ensure black text on button
             takeQuizButton.setFocusPainted(false);
             takeQuizButton.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
             takeQuizButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -310,13 +310,15 @@ public class DashboardManager {
         actionsContent.setBackground(PersonalityQuizApp.MEDIUM_BG_COLOR);
         actionsContent.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
-        // Action buttons
-        JButton newQuizButton = createActionButton("Take New Quiz", "📝");
+        // Action buttons with custom icons
+        JButton newQuizButton = createActionButton("Take New Quiz", 1); // 1=quiz
+        newQuizButton.setForeground(Color.BLACK); // Set font color to black
         newQuizButton.addActionListener(_ -> {
             cardLayout.show(mainPanel, "quizIntro");
         });
-        
-        JButton viewProfileButton = createActionButton("View Profile", "👤");
+
+        JButton viewProfileButton = createActionButton("View Profile", 3); // 3=profile
+        viewProfileButton.setForeground(Color.BLACK); // Set font color to black
         viewProfileButton.addActionListener(_ -> {
             app.getProfileManager().updateProfilePanel();
             cardLayout.show(mainPanel, "profile");
@@ -344,7 +346,7 @@ public class DashboardManager {
             recommendationText.setWrapStyleWord(true);
             recommendationText.setFont(new Font("Arial", Font.PLAIN, 13));
             recommendationText.setBackground(PersonalityQuizApp.MEDIUM_BG_COLOR);
-            recommendationText.setForeground(PersonalityQuizApp.TEXT_COLOR);
+            recommendationText.setForeground(Color.WHITE); // Changed for better visibility
             recommendationText.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
             
             learningPathPanel.add(recommendationText, BorderLayout.CENTER);
@@ -353,7 +355,7 @@ public class DashboardManager {
             JButton viewRecommendationButton = new JButton("View Full Recommendation");
             viewRecommendationButton.setFont(new Font("Arial", Font.BOLD, 12));
             viewRecommendationButton.setBackground(PersonalityQuizApp.PRIMARY_COLOR);
-            viewRecommendationButton.setForeground(Color.WHITE);
+            viewRecommendationButton.setForeground(Color.BLACK); // Ensure black text on button
             viewRecommendationButton.setFocusPainted(false);
             viewRecommendationButton.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
             viewRecommendationButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -373,7 +375,7 @@ public class DashboardManager {
             
             JLabel emptyLabel = new JLabel("Take a quiz to get personalized learning recommendations");
             emptyLabel.setFont(new Font("Arial", Font.ITALIC, 14));
-            emptyLabel.setForeground(PersonalityQuizApp.SECONDARY_TEXT_COLOR);
+            emptyLabel.setForeground(Color.WHITE); // Changed for better visibility
             emptyLabel.setHorizontalAlignment(JLabel.CENTER);
             emptyPanel.add(emptyLabel, BorderLayout.CENTER);
             
@@ -399,7 +401,7 @@ public class DashboardManager {
         homePanel.repaint();
     }
     
-    private JPanel createMenuItemPanel(String icon, String text, boolean isActive) {
+    private JPanel createMenuItemPanel(int iconType, String text, boolean isActive) {
         JPanel panel = new JPanel(new BorderLayout(10, 0));
         panel.setBackground(isActive ? PersonalityQuizApp.LIGHT_BG_COLOR : PersonalityQuizApp.MEDIUM_BG_COLOR);
         panel.setBorder(BorderFactory.createCompoundBorder(
@@ -409,15 +411,91 @@ public class DashboardManager {
         panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
         panel.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
-        JLabel iconLabel = new JLabel(icon);
-        iconLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        iconLabel.setForeground(isActive ? PersonalityQuizApp.PRIMARY_COLOR : PersonalityQuizApp.TEXT_COLOR);
+        // Create custom icon panel
+        JPanel iconPanel = new JPanel() {
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                Color iconColor = isActive ? PersonalityQuizApp.PRIMARY_COLOR : Color.WHITE;
+                g2d.setColor(iconColor);
+                g2d.setStroke(new BasicStroke(1.5f));
+                
+                int size = 16;
+                int x = (getWidth() - size) / 2;
+                int y = (getHeight() - size) / 2;
+                
+                switch (iconType) {
+                    case 0: // Home icon
+                        // House shape
+                        int[] xPoints = {x, x + size/2, x + size};
+                        int[] yPoints = {y + size/2, y, y + size/2};
+                        g2d.fillPolygon(xPoints, yPoints, 3);
+                        g2d.fillRect(x + 2, y + size/2, size - 4, size/2);
+                        break;
+                    case 1: // Quiz icon
+                        // Document with lines
+                        g2d.drawRect(x, y, size, size);
+                        g2d.drawLine(x + 3, y + 4, x + size - 3, y + 4);
+                        g2d.drawLine(x + 3, y + 8, x + size - 3, y + 8);
+                        g2d.drawLine(x + 3, y + 12, x + size - 3, y + 12);
+                        break;
+                    case 2: // Results icon
+                        // Bar chart
+                        g2d.drawRect(x, y, size, size);
+                        g2d.fillRect(x + 2, y + 12, 2, 4);
+                        g2d.fillRect(x + 6, y + 8, 2, 8);
+                        g2d.fillRect(x + 10, y + 4, 2, 12);
+                        g2d.fillRect(x + 14, y + 6, 2, 10);
+                        break;
+                    case 3: // Profile icon
+                        // Person silhouette
+                        g2d.drawOval(x + 4, y, 8, 8); // Head
+                        g2d.drawRect(x + 2, y + 8, 12, 8); // Body
+                        break;
+                    case 4: // Settings icon
+                        // Gear
+                        g2d.drawOval(x + 4, y + 4, 8, 8);
+                        for (int i = 0; i < 8; i++) {
+                            double angle = Math.toRadians(i * 45);
+                            int x1 = (int)(x + size/2 + Math.cos(angle) * 6);
+                            int y1 = (int)(y + size/2 + Math.sin(angle) * 6);
+                            int x2 = (int)(x + size/2 + Math.cos(angle) * 10);
+                            int y2 = (int)(y + size/2 + Math.sin(angle) * 10);
+                            g2d.drawLine(x1, y1, x2, y2);
+                        }
+                        break;
+                    case 5: // Sign out icon
+                        // Door with arrow
+                        g2d.drawRect(x + 4, y, 12, 16);
+                        g2d.drawLine(x, y + 8, x + 8, y + 8);
+                        g2d.drawLine(x, y + 8, x + 4, y + 4);
+                        g2d.drawLine(x, y + 8, x + 4, y + 12);
+                        break;
+                }
+                
+                g2d.dispose();
+            }
+            
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(24, 24);
+            }
+        };
+        iconPanel.setOpaque(false);
         
         JLabel textLabel = new JLabel(text);
         textLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        textLabel.setForeground(isActive ? PersonalityQuizApp.PRIMARY_COLOR : PersonalityQuizApp.TEXT_COLOR);
+        textLabel.setForeground(isActive ? PersonalityQuizApp.PRIMARY_COLOR : Color.WHITE);
         
-        panel.add(iconLabel, BorderLayout.WEST);
+        panel.add(iconPanel, BorderLayout.WEST);
         panel.add(textLabel, BorderLayout.CENTER);
         
         // Add hover effect
@@ -447,11 +525,11 @@ public class DashboardManager {
         
         JLabel valueLabel = new JLabel(value);
         valueLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        valueLabel.setForeground(PersonalityQuizApp.TEXT_COLOR);
+        valueLabel.setForeground(Color.WHITE);
         
         JLabel labelLabel = new JLabel(label);
         labelLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        labelLabel.setForeground(PersonalityQuizApp.SECONDARY_TEXT_COLOR);
+        labelLabel.setForeground(new Color(220, 220, 220));
         
         panel.add(valueLabel, BorderLayout.NORTH);
         panel.add(labelLabel, BorderLayout.CENTER);
@@ -465,7 +543,7 @@ public class DashboardManager {
         
         JLabel codeLabel = new JLabel(traitCode);
         codeLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        codeLabel.setForeground(PersonalityQuizApp.TEXT_COLOR);
+        codeLabel.setForeground(Color.WHITE);
         codeLabel.setPreferredSize(new Dimension(20, 20));
         traitPanel.add(codeLabel, BorderLayout.WEST);
         
@@ -490,16 +568,59 @@ public class DashboardManager {
         }
     }
     
-    private JButton createActionButton(String text, String icon) {
-        JButton button = new JButton(icon + " " + text);
+    private JButton createActionButton(String text, int iconType) {
+        JButton button = new JButton(text) {
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Draw icon
+                Color iconColor = getForeground();
+                g2d.setColor(iconColor);
+                g2d.setStroke(new BasicStroke(1.5f));
+                
+                int size = 16;
+                int x = 15; // Position from left
+                int y = (getHeight() - size) / 2;
+                
+                switch (iconType) {
+                    case 1: // Quiz icon
+                        // Document with lines
+                        g2d.drawRect(x, y, size, size);
+                        g2d.drawLine(x + 3, y + 4, x + size - 3, y + 4);
+                        g2d.drawLine(x + 3, y + 8, x + size - 3, y + 8);
+                        g2d.drawLine(x + 3, y + 12, x + size - 3, y + 12);
+                        break;
+                    case 3: // Profile icon
+                        // Person silhouette
+                        g2d.drawOval(x + 4, y, 8, 8); // Head
+                        g2d.drawRect(x + 2, y + 8, 12, 8); // Body
+                        break;
+                }
+                
+                g2d.dispose();
+            }
+        };
+        
         button.setFont(new Font("Arial", Font.BOLD, 14));
         button.setBackground(PersonalityQuizApp.LIGHT_BG_COLOR);
-        button.setForeground(PersonalityQuizApp.TEXT_COLOR);
+        button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createCompoundBorder(
             new LineBorder(new Color(80, 80, 100), 1, true),
-            BorderFactory.createEmptyBorder(10, 15, 10, 15)
+            BorderFactory.createEmptyBorder(10, 40, 10, 15) // Increased left padding for icon
         ));
+        button.setBorder(BorderFactory.createCompoundBorder(
+        	    new LineBorder(new Color(80, 80, 100), 1, true),
+        	    BorderFactory.createEmptyBorder(10, 40, 10, 15) // Increased left padding for icon
+        	));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setHorizontalAlignment(SwingConstants.LEFT);
         
@@ -534,7 +655,7 @@ public class DashboardManager {
         
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        titleLabel.setForeground(PersonalityQuizApp.TEXT_COLOR);
+        titleLabel.setForeground(Color.WHITE); // Changed for better visibility
         headerPanel.add(titleLabel, BorderLayout.WEST);
         
         if (category != null) {
