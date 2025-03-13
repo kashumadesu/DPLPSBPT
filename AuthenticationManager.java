@@ -158,7 +158,7 @@ public class AuthenticationManager {
         JButton loginButton = new JButton("Sign In");
         loginButton.setFont(new Font("Arial", Font.BOLD, 14));
         loginButton.setBackground(PersonalityQuizApp.PRIMARY_COLOR);
-        loginButton.setForeground(Color.WHITE);
+        loginButton.setForeground(Color.BLACK);
         loginButton.setFocusPainted(false);
         loginButton.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -456,7 +456,6 @@ public class AuthenticationManager {
         formPanel.add(passwordPanel);
         formPanel.add(Box.createVerticalStrut(30));
         
-        // Create account button
         JButton signupButton = new JButton("Create Account");
         signupButton.setFont(new Font("Arial", Font.BOLD, 16));
         signupButton.setBackground(PersonalityQuizApp.PRIMARY_COLOR);
@@ -469,7 +468,7 @@ public class AuthenticationManager {
         
         formPanel.add(signupButton);
         
-        // Add action listeners
+
         signupButton.addActionListener(_ -> {
             String firstName = firstNameField.getText();
             String lastName = lastNameField.getText();
@@ -480,13 +479,11 @@ public class AuthenticationManager {
             String password = new String(passwordField.getPassword());
             String confirmPassword = new String(confirmPasswordField.getPassword());
             
-            // Validate fields
             if (firstName.isEmpty() || lastName.isEmpty() || username.isEmpty() || password.isEmpty()) {
                 JOptionPane.showMessageDialog(frame, "First name, last name, username, and password are required", "Signup Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
-            // Validate age
+
             int age;
             try {
                 age = Integer.parseInt(ageText);
@@ -498,8 +495,7 @@ public class AuthenticationManager {
                 JOptionPane.showMessageDialog(frame, "Please enter a valid age", "Signup Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
-            // Validate birthday
+
             Date birthday;
             try {
                 birthday = dateFormat.parse(birthdayText);
@@ -507,26 +503,22 @@ public class AuthenticationManager {
                 JOptionPane.showMessageDialog(frame, "Please enter a valid birthday in MM/DD/YYYY format", "Signup Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
-            // Validate password match
+
             if (!password.equals(confirmPassword)) {
                 JOptionPane.showMessageDialog(frame, "Passwords do not match", "Signup Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            // Check if username already exists
             if (app.userExists(username)) {
                 JOptionPane.showMessageDialog(frame, "Username already exists", "Signup Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            // Create new user
             UserData newUser = new UserData(firstName, lastName, middleName, age, birthday, username, password);
             app.createNewUser(newUser);
             
             JOptionPane.showMessageDialog(frame, "Account created successfully", "Signup Success", JOptionPane.INFORMATION_MESSAGE);
-            
-            // Log in the new user
+
             app.setCurrentUser(username);
             app.getDashboardManager().updateHomePanel();
             cardLayout.show(mainPanel, "home");
@@ -536,12 +528,10 @@ public class AuthenticationManager {
             cardLayout.show(mainPanel, "login");
         });
         
-        // Add scroll pane for the form panel
         JScrollPane scrollPane = new JScrollPane(formPanel);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        
-        // Add panels to main signup panel
+
         signupPanel.add(headerPanel, BorderLayout.NORTH);
         signupPanel.add(scrollPane, BorderLayout.CENTER);
         
@@ -552,7 +542,6 @@ public class AuthenticationManager {
         JPanel changePasswordPanel = new JPanel(new BorderLayout());
         changePasswordPanel.setBackground(PersonalityQuizApp.DARK_BG_COLOR);
         
-        // Create header
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(PersonalityQuizApp.PRIMARY_COLOR);
         headerPanel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
@@ -570,8 +559,7 @@ public class AuthenticationManager {
         backButton.setFocusPainted(false);
         backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         headerPanel.add(backButton, BorderLayout.EAST);
-        
-        // Create form panel
+
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBackground(PersonalityQuizApp.MEDIUM_BG_COLOR);
         formPanel.setBorder(BorderFactory.createEmptyBorder(50, 50, 50, 50));
@@ -579,7 +567,6 @@ public class AuthenticationManager {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
-        // Create card-like container
         JPanel cardPanel = new JPanel(new GridBagLayout());
         cardPanel.setBackground(PersonalityQuizApp.LIGHT_BG_COLOR);
         cardPanel.setBorder(BorderFactory.createCompoundBorder(
@@ -590,7 +577,6 @@ public class AuthenticationManager {
         cardGbc.insets = new Insets(10, 10, 10, 10);
         cardGbc.fill = GridBagConstraints.HORIZONTAL;
         
-        // Form fields
         JLabel instructionLabel = new JLabel("Please enter your current password and a new password to update your account.");
         instructionLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         instructionLabel.setForeground(PersonalityQuizApp.TEXT_COLOR);
@@ -672,7 +658,6 @@ public class AuthenticationManager {
         cardGbc.insets = new Insets(0, 10, 25, 10);
         cardPanel.add(confirmPasswordField, cardGbc);
         
-        // Buttons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         buttonPanel.setBackground(PersonalityQuizApp.LIGHT_BG_COLOR);
         
@@ -700,39 +685,33 @@ public class AuthenticationManager {
         cardGbc.gridwidth = 2;
         cardGbc.insets = new Insets(0, 10, 10, 10);
         cardPanel.add(buttonPanel, cardGbc);
-        
-        // Add card to form panel
+
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         formPanel.add(cardPanel, gbc);
-        
-        // Add action listeners
+
         saveButton.addActionListener(_ -> {
             String currentPassword = new String(currentPasswordField.getPassword());
             String newPassword = new String(newPasswordField.getPassword());
             String confirmPassword = new String(confirmPasswordField.getPassword());
-            
-            // Validate current password
+
             if (!app.getCurrentUserData().getPassword().equals(currentPassword)) {
                 JOptionPane.showMessageDialog(frame, "Current password is incorrect", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
-            // Validate new password
+
             if (newPassword.isEmpty()) {
                 JOptionPane.showMessageDialog(frame, "New password cannot be empty", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
-            // Validate password match
+
             if (!newPassword.equals(confirmPassword)) {
                 JOptionPane.showMessageDialog(frame, "New passwords do not match", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
-            // Update password
+
             app.updateUserPassword(newPassword);
             
             JOptionPane.showMessageDialog(frame, "Password changed successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -749,8 +728,7 @@ public class AuthenticationManager {
             app.getDashboardManager().updateHomePanel();
             cardLayout.show(mainPanel, "home");
         });
-        
-        // Add panels to main panel
+
         changePasswordPanel.add(headerPanel, BorderLayout.NORTH);
         changePasswordPanel.add(formPanel, BorderLayout.CENTER);
         
